@@ -1,0 +1,47 @@
+import {AttachmentMediaReq} from "@/types/attachment";
+import {UserProfileDataInterface} from "@/types/user";
+import {GroupedReaction} from "@/types/reaction";
+import {CommentInfoInterface} from "@/types/comment";
+import {ChannelInfoInterface} from "@/types/channel";
+
+export interface PostsRes {
+    post_uuid?: string
+    post_text: string
+    post_temp_id?: string
+    post_attachments ?: AttachmentMediaReq[]
+    post_by: UserProfileDataInterface
+    post_created_at: string
+    post_reactions?: GroupedReaction[]
+    post_added_locally?: boolean
+    post_comments?: CommentInfoInterface[]
+    post_comment_count: number
+    post_channel?:  ChannelInfoInterface
+}
+
+export interface CreatePostsReq {
+
+    post_text_html: string
+    post_attachments: AttachmentMediaReq[]
+    channel_id: string
+}
+
+export interface CreatePostsRes {
+    post_id: string
+    post_created_at: string
+}
+
+export interface CreatePostsResRaw {
+    data: CreatePostsRes
+    msg: string
+}
+
+export interface CreatePostPaginationRes {
+    posts: PostsRes[];
+    has_more: boolean
+}
+
+export interface CreatePostPaginationResRaw {
+    data: CreatePostPaginationRes;
+    msg: string
+}
+

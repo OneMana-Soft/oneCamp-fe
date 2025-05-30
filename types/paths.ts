@@ -1,0 +1,5 @@
+export const error_not_authorised_path = "/error/not-authorised"
+export const app_home_path = "/app/home"
+export const app_channel_path = "/app/channel"
+export const app_project_path = "/app/project"
+export const app_project_team = "/app/team"
