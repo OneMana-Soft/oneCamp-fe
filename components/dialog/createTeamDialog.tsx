@@ -145,7 +145,7 @@ const CreateTeamDialog: React.FC<CreateTeamDialogProps> = ({
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={!isValid || isSubmitting || team_name == teamNameToCheck || isTeamNameAvailable?.exists}>
+            <Button type="submit" disabled={!isValid || isSubmitting || (teamNameToCheck === team_name && isTeamNameAvailable?.exists)}>
                 {isSubmitting ? "Creating..." : "Create Team"}
               </Button>
             </DialogFooter>
