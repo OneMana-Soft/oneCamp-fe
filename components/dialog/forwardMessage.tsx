@@ -1,6 +1,8 @@
 import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {openChannelFileUpload} from "@/store/slice/fileUploadSlice";
-import {cn} from "@/lib/utils/cn";
+import { cn } from "@/lib/utils/cn";
+import { useState } from "react";
+import type { Content } from "@tiptap/react";
 import {SendHorizontal} from "lucide-react";
 import {updateChannelInputText} from "@/store/slice/channelSlice";
 import {ChannelFileUpload} from "@/components/fileUpload/channelFileUpload";
@@ -17,6 +19,7 @@ interface FileDialogProps {
 }
 
 export const ForwardMessage = ({ chatUUID, channelUUID, open, onOpenChange }: FileDialogProps) => {
+    const [message, setMessage] = useState<Content>({ type: "doc", content: [] });
 
     if(!chatUUID && !channelUUID) {
         console.log("ASdfasdfsdf YYYY")
@@ -24,7 +27,7 @@ export const ForwardMessage = ({ chatUUID, channelUUID, open, onOpenChange }: Fi
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
             <DialogContent className="max-w-[95vw] md:max-w-[35vw]">
                 <DialogHeader>
                     <DialogTitle>Forward this message</DialogTitle>
@@ -42,10 +45,8 @@ export const ForwardMessage = ({ chatUUID, channelUUID, open, onOpenChange }: Fi
                     placeholder={"Add a message, if you'd like..."}
                     editable={true}
                     editorClassName="focus:outline-none px-5 py-4"
-                    onChange={(content ) => {
-
-
-                    }}
+                    value={message}
+                    onChange={setMessage}
                 >
                     {
                         channelUUID ?
