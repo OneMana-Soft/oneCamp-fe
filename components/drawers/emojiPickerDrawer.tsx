@@ -54,7 +54,7 @@ export function EmojiPickerDrawer({ showCustomReactions, onReactionSelect, react
     }
 
     return (
-        <Drawer open={reactionDrawerOpenState} onOpenChange={closeDrawer}>
+                <Drawer open={reactionDrawerOpenState} onOpenChange={closeDrawer} nested>
             <DrawerContent className="bottom-0 left-0 right-0 p-4">
                 <DrawerHeader className='hidden'>
                     <DrawerTitle></DrawerTitle>
