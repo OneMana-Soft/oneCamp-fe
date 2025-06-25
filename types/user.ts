@@ -2,6 +2,7 @@ import {TaskInfoInterface} from "@/types/task";
 import {TeamInfoInterface} from "@/types/team";
 import {ProjectInfoInterface} from "@/types/project";
 import {ChannelInfoInterface} from "@/types/channel";
+import {AttachmentMediaReq} from "@/types/attachment";
 
 export interface UserProfileDataInterface {
     uid: string;
@@ -66,10 +67,21 @@ export interface UserListInterfaceResp {
 export interface ChannelAndUserListInterfaceResp {
     type: string
     user_uuid: string
+    user_dgraph_uuid: string
     user_profile_object_key: string
     user_name: string
     channel_uuid: string
+    channel_dgraph_uid: string
     channel_name: string
+}
+
+export interface MessageFwdReq {
+    fwd_text: string
+    fwd_chat_uuid: string
+    fwd_post_uuid: string
+    fwd_channel_uuid: string
+    fwd_attachments: AttachmentMediaReq[]
+    fwd_list: ChannelAndUserListInterfaceResp[]
 }
 
 export interface ChannelAndUserListInterfaceReq {

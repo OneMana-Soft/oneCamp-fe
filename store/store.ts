@@ -14,6 +14,7 @@ import rightPanelSlice from "@/store/slice/rightPanelSlice";
 import fileUploadSlice from "@/store/slice/fileUploadSlice";
 import channelSlice from "@/store/slice/channelSlice";
 import chatSlice from "@/store/slice/chatSlice";
+import fwdMessageSlice from "@/store/slice/fwdMessageSlice";
 
 
 const rootPersistConfig = {
@@ -40,7 +41,8 @@ const rootReducer = combineReducers({
     [reactionSlice.name]: reactionSlice.reducer,
     [rightPanelSlice.name]: rightPanelSlice.reducer,
     [fileUploadSlice.name]: fileUploadSlice.reducer,
-    [chatSlice.name]: chatSlice.reducer
+    [chatSlice.name]: chatSlice.reducer,
+    [fwdMessageSlice.name]: fwdMessageSlice.reducer
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);

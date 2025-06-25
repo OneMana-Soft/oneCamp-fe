@@ -150,6 +150,7 @@ export default function AppLayout({
                 <ForwardMessage
                     chatUUID={dialogState.forwardMessageDialog.data.chatUUID}
                     channelUUID={dialogState.forwardMessageDialog.data.channelUUID}
+                    postUUID={dialogState.forwardMessageDialog.data.postUUID}
                     onOpenChange={() => dispatch(closeForwardMessageDialog())}
                     open={dialogState.forwardMessageDialog.isOpen}
                 />

@@ -67,6 +67,10 @@ const endpointMessages: Record< PostEndpointUrl, { success: string; error: strin
         success: "Got search result.",
         error: "Failed to get search result.",
     },
+    [PostEndpointUrl.FwdMsgToChatOrChannel]: {
+        success: "Fwd message successfully.",
+        error: "Failed fwd message.",
+    },
 };
 
 export const usePost = () => {

@@ -7,6 +7,8 @@ import MinimalTiptapTextInput from "@/components/textInput/textInput";
 import {MessageDesktopHoverOption} from "@/components/message/MessageDesktopHoverOption";
 
 import {useState} from "react";
+import {usePathname} from "next/navigation";
+import {MessagePreview} from "@/components/message/MessagePreview";
 
 interface ChannelMessageProps {
     postInfo: PostsRes
@@ -17,6 +19,9 @@ interface ChannelMessageProps {
 export const ChannelMessage = ({postInfo, isAdmin}: ChannelMessageProps) => {
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const channelId = usePathname().split('/')[3]
+
+
 
 
     return (
@@ -27,7 +32,7 @@ export const ChannelMessage = ({postInfo, isAdmin}: ChannelMessageProps) => {
                     isDropdownOpen || "opacity-0 group-hover:opacity-100"
                 )}
             >
-                <MessageDesktopHoverOption setIsDropdownOpen={setIsDropdownOpen}/>
+                <MessageDesktopHoverOption setIsDropdownOpen={setIsDropdownOpen} channelUUID={channelId} postUUID={postInfo.post_uuid}/>
             </div>
             <div className='h-12 w-12 flex-shrink-0'>
                 <ChannelMessageAvatar userInfo={postInfo.post_by}/>
@@ -65,6 +70,20 @@ export const ChannelMessage = ({postInfo, isAdmin}: ChannelMessageProps) => {
                     >
                     </MinimalTiptapTextInput>
                 </div>
+
+                {
+                    (postInfo.post_fwd_msg_chat || postInfo.post_fwd_msg_post) &&
+
+                    <MessagePreview
+                        msgBy={postInfo.post_by || postInfo.post_fwd_msg_chat.chat_from }
+                        msgText={postInfo.post_fwd_msg_post.post_text || postInfo.post_fwd_msg_chat?.chat_body_text || ''}
+                        msgChannelName={postInfo.post_fwd_msg_post.post_channel?.ch_name}
+                        msgChannelUUID={postInfo.post_fwd_msg_post.post_channel?.ch_uuid}
+                        msgUUID={postInfo.post_fwd_msg_post.post_uuid || postInfo.post_fwd_msg_chat.chat_uuid}
+                        msgCreatedAt={postInfo.post_fwd_msg_post.post_created_at || postInfo.post_fwd_msg_chat.chat_created_at}
+                        vewFooter={true}
+                    />
+                }
             </div>
         </div>
     )

@@ -14,6 +14,8 @@ export enum GetEndpointUrl {
     GetNewPostAfter = "/po/newPosts/{channel_uuid}/{time_stamp}",
     GetOldPostBefore = "/po/oldPosts/{channel_uuid}/{time_stamp}",
     GetChatMedia = "/chat/getFile",
+    GetOnlyPostText = "/po/getOnlyPostText",
+    GetOnlyChatText = "/chat/getChatOnlyText"
 
 }
 
@@ -35,4 +37,5 @@ export enum PostEndpointUrl {
     UpdateChannelNotification = "/user/updateUserChannelNotification",
     CreateChannelPost = "/po/createPost",
     SearchUserAndChannel = "/user/searchUserAndChannelList",
+    FwdMsgToChatOrChannel = "/user/fwdMessage",
 }

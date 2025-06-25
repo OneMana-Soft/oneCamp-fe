@@ -62,7 +62,7 @@ const CreateTeamDialog: React.FC<CreateTeamDialogProps> = ({
 
 
   const { data: isTeamNameAvailable, isLoading: isCheckingAvailability } = useFetch<TeamNameExistsInterface>(
-      teamNameToCheck ? `${GetEndpointUrl.CheckTeamNameAvailability}?team_name=${teamNameToCheck}` : null
+      teamNameToCheck ? `${GetEndpointUrl.CheckTeamNameAvailability}?team_name=${teamNameToCheck}` : ''
   );
 
   const { makeRequest, isSubmitting } = usePost();

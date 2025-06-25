@@ -3,6 +3,7 @@ import {UserProfileDataInterface} from "@/types/user";
 import {GroupedReaction} from "@/types/reaction";
 import {CommentInfoInterface} from "@/types/comment";
 import {ChannelInfoInterface} from "@/types/channel";
+import {ChatInfo} from "@/types/chat";
 
 export interface PostsRes {
     post_uuid?: string
@@ -16,6 +17,8 @@ export interface PostsRes {
     post_comments?: CommentInfoInterface[]
     post_comment_count: number
     post_channel?:  ChannelInfoInterface
+    post_fwd_msg_post?: PostsRes
+    post_fwd_msg_chat?: ChatInfo
 }
 
 export interface CreatePostsReq {
@@ -42,6 +45,11 @@ export interface CreatePostPaginationRes {
 
 export interface CreatePostPaginationResRaw {
     data: CreatePostPaginationRes;
+    msg: string
+}
+
+export interface PostsResRaw {
+    data: PostsRes;
     msg: string
 }
 

@@ -35,7 +35,6 @@ export const ChannelFileUpload = ({channelId}:ChannelFileUploadProps) => {
                 fileInputRef.current.value = ""; // Clear the input
             }
 
-            close()
         },
         [channelId, uploadFile]
     )

@@ -20,7 +20,6 @@ export const MobileChannelTextInput = ({ channelId }: { channelId: string }) => 
         if (!contentRef.current) return;
 
         const resizeObserver = new ResizeObserver((entries) => {
-            console.log("fdfasd ", entries)
             for (const entry of entries) {
                 // Update initialHeight based on the entire content height
                 setInitialHeight(Math.max(entry.contentRect.height, 30) + 70);

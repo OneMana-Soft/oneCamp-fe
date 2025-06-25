@@ -8,9 +8,12 @@ import {openForwardMessageDialog} from "@/store/slice/dialogSlice";
 
 interface MessageDesktopHoverOptionProps {
     setIsDropdownOpen: (open: boolean) => void;
+    chatUUID?: string;
+    channelUUID?: string;
+    postUUID?: string;
 }
 
-export const MessageDesktopHoverOption = ({ setIsDropdownOpen }: MessageDesktopHoverOptionProps) => {
+export const MessageDesktopHoverOption = ({ setIsDropdownOpen, channelUUID, chatUUID, postUUID }: MessageDesktopHoverOptionProps) => {
     const dispatch = useDispatch();
     return (
         <div className='bg-background  rounded-lg flex items-center space-x-0.5 border-2 p-1'>
@@ -29,7 +32,7 @@ export const MessageDesktopHoverOption = ({ setIsDropdownOpen }: MessageDesktopH
             <Button variant="ghost" size="icon" className="h-8 w-8 ">
                 <MessageSquareText className="h-4 w-4" stroke='#616060'/>
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={()=>{dispatch(openForwardMessageDialog({chatUUID:'', channelUUID:'ughvb'}))}}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={()=>{dispatch(openForwardMessageDialog({chatUUID:chatUUID||'', channelUUID: channelUUID||'', postUUID:postUUID||''}))}}>
                 <Forward className="h-4 w-4" stroke='#616060'/>
             </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 ">

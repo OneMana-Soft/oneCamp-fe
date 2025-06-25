@@ -19,13 +19,14 @@ interface mediaLightboxInterface {
 interface forwardMessageInterface {
   chatUUID: string
   channelUUID: string
+  postUUID: string
 }
 
 const initialState = {
   createChannelDialog: { isOpen: false },
   createProjectDialog: { isOpen: false },
   createTeamDialog: { isOpen: false },
-  forwardMessageDialog: { isOpen: false,  data: { chatUUID: "", channelUUID: "" } },
+  forwardMessageDialog: { isOpen: false,  data: { chatUUID: "", channelUUID: "", postUUID: "" } },
   createChatMessageDialog: { isOpen: false },
   updateUserStatusDialog: { isOpen: false, data: { userUUID: "" } },
   editChannelDialog: { isOpen: false, data: { channelUUID: "" } },

@@ -29,13 +29,12 @@ export const ChatFileUpload = ({chatUUID}:ChatFileUploadProps) => {
             const files = e.target.files
             if (!files?.length) return
 
-            await uploadFile.makeRequestToUploadToChannel(files, chatUUID)
+            await uploadFile.makeRequestToUploadToChat(files, chatUUID)
 
             if (fileInputRef.current) {
                 fileInputRef.current.value = ""; // Clear the input
             }
 
-            close()
         },
         [chatUUID, uploadFile]
     )

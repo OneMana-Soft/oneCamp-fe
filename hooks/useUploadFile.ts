@@ -42,11 +42,18 @@ import {
     updateChatPreviewFiles,
     updateChatPreviewFilesUUID
 } from "@/store/slice/chatSlice";
+import {
+    addFwdMsgPreviewFiles, addFwdMsgUploadedFiles, deleteFwdMsgPreviewFiles,
+    updateFwdMsgPreviewFiles,
+    updateFwdMsgPreviewFilesUUID
+} from "@/store/slice/fwdMessageSlice";
 
 
 interface UploadJson {
     src_key: "project" | "channel" | "public" | "chat"
-    src_value:  string
+    src_value?:  string
+    channel_uuids?: string[]
+    chat_uuids?: string[]
 }
 
 
@@ -89,6 +96,22 @@ const uploadFileToChat = (file: File, chatUUID: string, config: AxiosRequestConf
     const jd:UploadJson = {
         src_key: "chat",
         src_value: chatUUID
+    }
+
+    const jsonData = JSON.stringify(jd);
+    formData.append('jsonData', jsonData);
+
+    return axiosInstance.post(PostFileUploadURL.UploadFile, formData, config).then((res) => res);
+}
+
+const uploadFileToChannelsAndChats = (file: File, chatUUIDs: string[], channelUUIDs: string[], config: AxiosRequestConfig ={}) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const jd:UploadJson = {
+        src_key: "chat",
+        channel_uuids: channelUUIDs,
+        chat_uuids: chatUUIDs
     }
 
     const jsonData = JSON.stringify(jd);
@@ -674,6 +697,108 @@ export const useUploadFile = () => {
         return
     }
 
+    const makeRequestToUploadToChatAndChannels = async (files: FileList, chatUUIDs: string[], channelUUIDs: string[]) => {
+
+        const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
+
+        console.log("asdkasdh UPLOADING!!!!!!!!!")
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const cancelToken = axios.CancelToken.source();
+            const uniqueNum = (Date.now() + i).toString() // Added i to prevent duplicate keys
+
+            const currentDate = Date.now().toString()
+            const attachmentType = getAttachmentType(file.name)
+
+            dispatch(
+                addFwdMsgPreviewFiles({
+                    filesUploaded: {
+                        key: uniqueNum,
+                        fileName: file.name,
+                        progress: 0,
+                        cancelSource: cancelToken,
+                        attachmentType
+                    },
+                })
+            );
+
+            setIsSubmitting(true)
+
+            const config: AxiosRequestConfig = {
+                cancelToken: cancelToken.token,
+                onUploadProgress: (progressEvent) => {
+                    const progress = Math.round(
+                        (progressEvent.loaded / (progressEvent.total || 100)) * 100
+                    );
+
+                    dispatch(
+                        updateFwdMsgPreviewFiles({
+                            progress: progress,
+                            key: uniqueNum,
+                        })
+                    );
+                },
+            };
+
+            const uploadPromise = uploadFileToChannelsAndChats(
+                file,
+                chatUUIDs,
+                channelUUIDs,
+                config
+            )
+                .then((res) => {
+                    const uploadMediaRes: UploadFileInterfaceRes = res.data;
+
+                    dispatch(updateFwdMsgPreviewFilesUUID({
+                        key: uniqueNum,
+                        uuid: uploadMediaRes.object_uuid,
+                    }))
+
+                    dispatch(
+                        addFwdMsgUploadedFiles({
+                            filesUploaded: {
+                                attachment_file_name: file.name,
+                                attachment_obj_key: uniqueNum,
+                                attachment_uuid: uploadMediaRes.object_uuid,
+                                attachment_size: file.size,
+                                attachment_created_at: currentDate,
+                                attachment_type: attachmentType
+                            },
+                        })
+                    );
+                    return res;
+                })
+                .catch((error) => {
+                    dispatch(
+                        deleteFwdMsgPreviewFiles({
+                            key: uniqueNum,
+                        })
+                    );
+
+                    toast({
+                        title: "Error",
+                        description: `error while uploading file: ${file.name}`,
+                        variant: 'destructive'
+                    });
+                    throw error; // Re-throw to be caught by Promise.allSettled
+                });
+
+            uploadPromises.push(uploadPromise);
+        }
+
+        // Wait for all uploads to complete (success or failure)
+        try {
+            await Promise.allSettled(uploadPromises);
+        } catch (error) {
+            console.error("Error in upload batch:", error);
+        }finally {
+            setIsSubmitting(false)
+        }
+
+        return
+    }
+
+
     const makeRequestToUploadToChat = async (files: FileList, chatUUID: string) => {
 
         const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
@@ -781,5 +906,5 @@ export const useUploadFile = () => {
 
 
 
-    return {makeRequestToUploadToChannel, makeRequestToUploadToProject, makeRequestToUploadToTask,  makeRequestToUploadToPost, makeRequestToUploadToTaskComment, makeRequestToUploadToChatComment, makeRequestToUploadToChat, isSubmitting}
+    return {makeRequestToUploadToChannel, makeRequestToUploadToProject, makeRequestToUploadToTask,  makeRequestToUploadToPost, makeRequestToUploadToTaskComment, makeRequestToUploadToChatComment, makeRequestToUploadToChat, makeRequestToUploadToChatAndChannels, isSubmitting}
 }

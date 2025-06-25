@@ -4,6 +4,7 @@ import {PostsRes} from "@/types/post";
 import {UserProfileDataInterface} from "@/types/user";
 import {AttachmentMediaReq, AttachmentType} from "@/types/attachment";
 import {GroupedReaction} from "@/types/reaction";
+import {undefined} from "zod";
 
 
 export interface FilePreview {
@@ -427,7 +428,7 @@ export const channelSlice = createSlice({
                 post_temp_id: postTempId,
                 post_added_locally: true, // not seen by user yet
                 post_attachments: attachments,
-                post_comment_count: 0,
+                post_comment_count: 0
             })
         },
 

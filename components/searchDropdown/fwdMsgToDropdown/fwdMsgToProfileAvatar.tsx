@@ -7,7 +7,7 @@ import {getNameInitials} from "@/lib/utils/getNameIntials";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 
 interface FwdMsgToProfileAvatarProps {
-    userProfileObjKey: string
+    userProfileObjKey: string|undefined
     userName: string
 }
 export const FwdMsgToProfileAvatar = ({userProfileObjKey, userName}: FwdMsgToProfileAvatarProps) => {
@@ -15,7 +15,7 @@ export const FwdMsgToProfileAvatar = ({userProfileObjKey, userName}: FwdMsgToPro
     const nameInitial = getNameInitials(userName);
 
     return (
-        <Avatar className="w-8 h-8">
+        <Avatar className="w-6 h-6">
             <AvatarImage src={profileImageRes.data?.url} className='rounded-full'/>
             <AvatarFallback>
                 {nameInitial}
