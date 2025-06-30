@@ -24,7 +24,8 @@ export interface UserProfileDataInterface {
     user_deleted_at: string;
     user_notifications_paused: boolean
     user_notification_pause_expires_at: string | null
-    user_status: UserStatusInterface | null
+    user_status: string
+    user_emoji_statuses:UserEmojiStatus[]
     user_custom_notification: NotificationSchedule
 }
 export interface UserProfileInterface {
@@ -34,15 +35,6 @@ export interface UserProfileInterface {
 }
 
 export type StatusTime = '30m' | '1h' | '4h' | 'today' | 'this_week' | 'custom';
-
-export interface UserStatusInterface {
-    message: string
-    emoji: string
-    expiration_setting: StatusTime
-    expires_at: string | null
-    pause_notifications: boolean
-    expires_in: StatusTime
-}
 
 export type CustomNotificationSchedule = {
     days: ('Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday')[]
@@ -56,7 +48,7 @@ export type NotificationSchedule = {
 }
 
 export interface UserStatusRespInterface {
-    data: UserStatusInterface[]
+    data: UserEmojiStatus[]
 }
 
 export interface UserListInterfaceResp {
@@ -86,5 +78,25 @@ export interface MessageFwdReq {
 
 export interface ChannelAndUserListInterfaceReq {
     search_text: string
+}
+
+export interface UserEmojiStatus {
+    status_user_emoji_id: string
+    status_user_emoji_desc: string
+    status_user_emoji_expiry_at?: string
+    status_user_emoji_expiry_in?: StatusTime
+}
+
+export interface UserEmojiStatusResp {
+    data: UserEmojiStatus
+    msg: string
+}
+
+export interface UpdateUserEmojiStatusReq {
+    emoji_id: string
+    emoji_status_desc: string
+    emoji_expiry_time_at: string
+    emoji_expiry_time_in: string
+    emoji_timezone: string
 }
 

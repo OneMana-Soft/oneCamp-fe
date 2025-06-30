@@ -19,13 +19,11 @@ import {Button} from "@/components/ui/button";
 import {useState} from "react";
 import {ChannelAndUserListInterfaceResp, MessageFwdReq} from "@/types/user";
 import {usePost} from "@/hooks/usePost";
-import {FwdToChatAndChannelFileUpload} from "@/components/fileUpload/fwdToChatAndChannelFileUpload";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/store/store";
 import {clearFwdMsgInputState, createOrUpdateFwdMsg} from "@/store/slice/fwdMessageSlice";
 import {LoaderCircle} from "lucide-react";
 import * as React from "react";
-import {openChannelFileUpload, openFwdMsgFileUpload} from "@/store/slice/fileUploadSlice";
 
 
 interface FileDialogProps {
@@ -43,8 +41,6 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
 
     const [selectedUsersOrChannels, setSelectedUsersOrChannels] = useState<ChannelAndUserListInterfaceResp[]>([])
 
-    const [selectedChannelUUIDs, setSelectedChannelUUIDs] = useState<string[]>([])
-    const [selectedChatUUIDs, setSelectedChatUIDs] = useState<string[]>([])
 
     const fwdMsgInputState = useSelector((state: RootState) => state.fwdMsg.fwdMsgInputInputState);
 
@@ -59,24 +55,6 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
 
     const selectChatsOrChannels = (input:ChannelAndUserListInterfaceResp[]) => {
         setSelectedUsersOrChannels(input);
-        const chatUUIDs: string[] = []
-        const channelUUIDs: string[] = []
-
-
-        input.forEach((value)=> {
-            console.log("pppppp", value)
-            if(value.type == 'channel') {
-                channelUUIDs.push(value.channel_uuid)
-            }
-
-            if(value.type == 'chat') {
-                chatUUIDs.push(value.user_uuid)
-            }
-        })
-
-        setSelectedChannelUUIDs(channelUUIDs)
-        setSelectedChatUIDs(chatUUIDs)
-
     }
 
     const clickFwdMessage = () => {
@@ -110,16 +88,7 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
                 <ForwardMessageDropdown onSelect={selectChatsOrChannels}/>
                 <MinimalTiptapTextInput
                     throttleDelay={300}
-                    attachmentOnclick = {()=>{
-                        console.log("sdfasdfsdf ", selectedChannelUUIDs, selectedChatUUIDs)
 
-                        if(selectedChannelUUIDs.length == 0 &&  selectedChatUUIDs.length == 0) {
-
-                            return
-
-                        }
-                        dispatch(openFwdMsgFileUpload())}
-                    }
                     className={cn("max-w-full rounded-xl h-auto border bg-secondary/20")}
                     editorContentClassName="overflow-auto"
                     output="html"
@@ -132,11 +101,6 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
 
                     }}
                 >
-                    {
-                        (selectedChannelUUIDs  && selectedChatUUIDs) &&
-                            <FwdToChatAndChannelFileUpload channelUUIDs={selectedChannelUUIDs} chatUUIDs={selectedChatUUIDs}/>
-
-                    }
 
                 </MinimalTiptapTextInput>
                 <MessagePreview

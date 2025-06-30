@@ -13,3 +13,10 @@ export function findGroupedReaction(
 export function findEmojiMartEmoji(emojiMartData: EmojiMartData, nativeEmoji: string) {
     return Object.values(emojiMartData.emojis).find((emoji) => emoji.skins.some((skin) => skin.native === nativeEmoji))
 }
+
+
+export function findEmojiMartEmojiByEmojiID(emojiMartData: EmojiMartData| null, emojiId: string) {
+    if(!emojiMartData) return
+
+    return Object.values(emojiMartData.emojis).find((emoji) => emoji.id === emojiId)
+}

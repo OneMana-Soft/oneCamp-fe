@@ -71,6 +71,10 @@ const endpointMessages: Record< PostEndpointUrl, { success: string; error: strin
         success: "Fwd message successfully.",
         error: "Failed fwd message.",
     },
+    [PostEndpointUrl.UpdateUserEmojiStatus]: {
+        success: "Updated status successfully.",
+        error: "Failed to update status.",
+    },
 };
 
 export const usePost = () => {

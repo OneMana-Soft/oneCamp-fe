@@ -15,7 +15,9 @@ export enum GetEndpointUrl {
     GetOldPostBefore = "/po/oldPosts/{channel_uuid}/{time_stamp}",
     GetChatMedia = "/chat/getFile",
     GetOnlyPostText = "/po/getOnlyPostText",
-    GetOnlyChatText = "/chat/getChatOnlyText"
+    GetOnlyChatText = "/chat/getChatOnlyText",
+    GetUserStatuses = "/user/getAllUserEmojiStatusList",
+    GetUserEmojiStatus = "/user/getActiveUserEmojiStatus"
 
 }
 
@@ -38,4 +40,6 @@ export enum PostEndpointUrl {
     CreateChannelPost = "/po/createPost",
     SearchUserAndChannel = "/user/searchUserAndChannelList",
     FwdMsgToChatOrChannel = "/user/fwdMessage",
+    UpdateUserEmojiStatus = "/user/updateStatusEmojiStatus",
+    ClearEmojiStatus = "/user/clearUserEmojiStatus",
 }

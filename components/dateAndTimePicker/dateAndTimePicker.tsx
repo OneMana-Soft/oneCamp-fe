@@ -30,7 +30,14 @@ export function DateAndTimePicker({ value, onChange }: { value: Date; onChange: 
   return (
     <>
       <Calendar initialFocus fromDate={new Date()} mode='single' selected={value} onSelect={setDateFromCalendar} />
-      <Input type='time' value={timeString} onChange={(e)=>{setDateFromTimeField(e.target.value)}} className='text-center' />
+      <Input type='time' value={timeString} onChange={(e)=>{
+        e.preventDefault()
+        setDateFromTimeField(e.target.value)
+      }
+      }
+        className='text-center'
+      />
+
     </>
   )
 }

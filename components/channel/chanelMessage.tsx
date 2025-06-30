@@ -75,12 +75,12 @@ export const ChannelMessage = ({postInfo, isAdmin}: ChannelMessageProps) => {
                     (postInfo.post_fwd_msg_chat || postInfo.post_fwd_msg_post) &&
 
                     <MessagePreview
-                        msgBy={postInfo.post_by || postInfo.post_fwd_msg_chat.chat_from }
-                        msgText={postInfo.post_fwd_msg_post.post_text || postInfo.post_fwd_msg_chat?.chat_body_text || ''}
-                        msgChannelName={postInfo.post_fwd_msg_post.post_channel?.ch_name}
-                        msgChannelUUID={postInfo.post_fwd_msg_post.post_channel?.ch_uuid}
-                        msgUUID={postInfo.post_fwd_msg_post.post_uuid || postInfo.post_fwd_msg_chat.chat_uuid}
-                        msgCreatedAt={postInfo.post_fwd_msg_post.post_created_at || postInfo.post_fwd_msg_chat.chat_created_at}
+                        msgBy={postInfo.post_by || postInfo.post_fwd_msg_chat?.chat_from }
+                        msgText={postInfo.post_fwd_msg_post?.post_text || postInfo.post_fwd_msg_chat?.chat_body_text || ''}
+                        msgChannelName={postInfo.post_fwd_msg_post?.post_channel?.ch_name}
+                        msgChannelUUID={postInfo.post_fwd_msg_post?.post_channel?.ch_uuid}
+                        msgUUID={postInfo.post_fwd_msg_post?.post_uuid || postInfo.post_fwd_msg_chat?.chat_uuid}
+                        msgCreatedAt={postInfo.post_fwd_msg_post?.post_created_at || postInfo.post_fwd_msg_chat?.chat_created_at}
                         vewFooter={true}
                     />
                 }

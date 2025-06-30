@@ -10,11 +10,12 @@ const fetcher = async <T>(url: string): Promise<T> => {
 };
 
 export const useFetch = <T>(url: string) => {
-    const { data, error, isLoading, isValidating } = useSWR<T>(url == '' ? null : url, fetcher);
+    const { data, error, isLoading, isValidating, mutate } = useSWR<T>(url == '' ? null : url, fetcher);
 
     return {
         data,
         isLoading: isLoading || isValidating,
         isError: error,
+        mutate
     };
 };

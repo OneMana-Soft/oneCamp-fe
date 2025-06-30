@@ -21,6 +21,7 @@ const EmojiReactionPicker = ({ editor, size, variant }: EmojiReactionPickerProps
         const emojis = await SearchIndex.search(reaction.id);
         const emojiData = emojis?.find((emoji: ReactionDataInterface) => emoji.id === reaction.id);
         if(emojiData){
+            console.log("sdfgsdfsdf 555555", emojiData)
             editor.commands.insertContent(emojiData.skins[0].native);
         }
     }

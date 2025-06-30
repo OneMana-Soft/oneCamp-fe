@@ -46,7 +46,7 @@ const CustomExpirationCalendarDialog: React.FC<CreateTeamDialogProps> = ({
 
 
     return (
-        <Dialog onOpenChange={(open) => {
+        <Dialog  onOpenChange={(open) => {
             if (!open) {
                 closeModal();
             }
@@ -66,7 +66,8 @@ const CustomExpirationCalendarDialog: React.FC<CreateTeamDialogProps> = ({
                     <Button
                         disabled={date < new Date()}
                         className='py-1'
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.preventDefault()
                             onSelectExpiration(date)
                         }}
                         aria-hidden={false}

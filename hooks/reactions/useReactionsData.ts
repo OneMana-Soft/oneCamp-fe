@@ -14,7 +14,7 @@ import {useFetch} from "@/hooks/useFetch";
 
 export function useReactionsData(): ReactionsData | null {
     const { data: emojiMartData } = useEmojiMartData()
-    const  customReactions = useFetch<SyncCustomReactionResp>("sdfsadf")
+    const  customReactions = useFetch<SyncCustomReactionResp>("")
 
     const aliases = useMemo(() => emojiMartData?.aliases ?? {}, [emojiMartData?.aliases])
 

@@ -31,7 +31,7 @@ export function EmojiPickerDrawer({ showCustomReactions, onReactionSelect, react
     const [query, setQuery] = useState('')
     const { data } = useEmojiMartData()
     const { addReactionIdToFrequents } = useAddFrequentlyUsedReaction()
-    const customReactions = useFetch<SyncCustomReactionResp>("sdfsadf")
+    const customReactions = useFetch<SyncCustomReactionResp>("")
     const { frequentlyUsedReactions } = useFrequentlyUsedReactions({ hideCustomReactions: !showCustomReactions })
     const { reactionSearchResults } = useSearchReactions(query, {
         maxResults: 90,

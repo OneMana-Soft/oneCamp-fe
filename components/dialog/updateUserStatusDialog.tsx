@@ -11,13 +11,17 @@ import {
 } from "@/components/ui/dialog";
 import * as React from "react";
 import {ReactionPicker} from "@/components/reactionPicker/reactionPicker";
-import {useCallback, useMemo, useState} from "react";
-import {OrganizationsOrgSlugMembersMeStatusesPostRequest} from "@/types/status";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {useFetch} from "@/hooks/useFetch";
-import {StatusTime, UserProfileInterface, UserStatusRespInterface} from "@/types/user";
+import {
+  StatusTime,
+  UpdateUserEmojiStatusReq,
+  UserEmojiStatus, UserEmojiStatusResp,
+  UserStatusRespInterface
+} from "@/types/user";
 import { uniqueBy } from 'remeda'
 import {useStatusIsExpired} from "@/hooks/useStatusIsExpired";
-import {GetEndpointUrl} from "@/services/endPoints";
+import {GetEndpointUrl, PostEndpointUrl} from "@/services/endPoints";
 import {isStandardReaction} from "@/lib/utils/reaction/checker";
 import {Input} from "@/components/ui/input";
 import {useMedia} from "@/context/MediaQueryContext";
@@ -29,38 +33,40 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import {getTimeRemaining} from "@/lib/utils/status/memberStatus";
-import {Checkbox} from "@/components/ui/checkbox";
-import Link from "next/link";
 import {Separator} from "@/components/ui/separator";
 import CustomExpirationCalendarDialog from "@/components/dialog/customExpirationCalendarDialog";
 import {addHours} from "date-fns";
+import {X} from "lucide-react";
+import {useEmojiMartData} from "@/hooks/reactions/useEmojiMartData";
+import {findEmojiMartEmojiByEmojiID} from "@/lib/utils/reaction/findReaction";
+import {usePost} from "@/hooks/usePost";
 
 
-const DEFAULT_STATUSES: OrganizationsOrgSlugMembersMeStatusesPostRequest[] = [
+const DEFAULT_STATUSES: UserEmojiStatus[] = [
   {
-    emoji: '🥪',
-    message: 'Lunch',
-    expiration_setting: '30m'
+    status_user_emoji_id: 'sandwich',
+    status_user_emoji_desc: 'Lunch',
+    status_user_emoji_expiry_in: '30m'
   },
   {
-    emoji: '🗓️',
-    message: 'In a meeting',
-    expiration_setting: '1h'
+    status_user_emoji_id: 'spiral_calendar_pad',
+    status_user_emoji_desc: 'In a meeting',
+    status_user_emoji_expiry_in: '1h'
   },
   {
-    emoji: '🧠',
-    message: 'Deep work',
-    expiration_setting: '4h'
+    status_user_emoji_id: 'brain',
+    status_user_emoji_desc: 'Deep work',
+    status_user_emoji_expiry_in: '4h'
   },
   {
-    emoji: '😷',
-    message: 'Sick',
-    expiration_setting: 'today'
+    status_user_emoji_id: 'mask',
+    status_user_emoji_desc: 'Sick',
+    status_user_emoji_expiry_in: 'today'
   },
   {
-    emoji: '🌴',
-    message: 'Vacationing',
-    expiration_setting: 'this_week'
+    status_user_emoji_id: 'palm_tree',
+    status_user_emoji_desc: 'Vacationing',
+    status_user_emoji_expiry_in: 'this_week'
   }
 ]
 
@@ -78,154 +84,146 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
 }) => {
 
   const defaultState = {
-    emoji: '💬',
+    emoji: 'speech_balloon',
     message: '',
     expiration_setting: '30m' as StatusTime,
     expires_at: undefined,
     pause_notifications: false
   }
 
-  const selfProfile = useFetch<UserProfileInterface>(GetEndpointUrl.SelfProfile)
-  const memberStatus = selfProfile.data?.data.user_status
+  const post = usePost()
+
+  const userActiveEmojiStatus = useFetch<UserEmojiStatusResp>(GetEndpointUrl.GetUserEmojiStatus)
+  const memberStatus = userActiveEmojiStatus.data?.data ?? null;
+
   const memberStatusIsExpired = useStatusIsExpired(memberStatus)
-  const recentStatusesResp = useFetch<UserStatusRespInterface>("zxzxzxzx")
+  const recentStatusesResp = useFetch<UserStatusRespInterface>(GetEndpointUrl.GetUserStatuses)
   const currentStatus = memberStatusIsExpired ? null : memberStatus
 
-  const [emoji, setEmoji] = useState(currentStatus?.emoji ?? defaultState.emoji)
-  const [message, setMessage] = useState(currentStatus?.message ?? defaultState.message)
-  const [expiresIn, setExpiresIn] = useState<StatusTime | null>(
-      currentStatus?.expiration_setting ?? defaultState.expiration_setting
-  )
-  const [expiresAt, setExpiresAt] = useState<Date | undefined>(
-      currentStatus?.expires_at ? new Date(currentStatus.expires_at) : defaultState.expires_at
-  )
+  const [emoji, setEmoji] = useState( defaultState.emoji)
+  const [message, setMessage] = useState(defaultState.message)
+  const [expiresIn, setExpiresIn] = useState<StatusTime | null>(defaultState.expiration_setting)
+  const [expiresAt, setExpiresAt] = useState<Date | undefined>(defaultState.expires_at)
   const [customExpirationCalendarDialogOpen, setCustomExpirationCalendarDialogOpen] = useState(false)
 
-  const [willPauseNotifications, setWillPauseNotifications] = useState<boolean>(
-      (selfProfile.data?.data?.user_notifications_paused && currentStatus?.pause_notifications) ?? defaultState.pause_notifications
-  )
-  const hasStatus = Boolean(currentStatus)
-  const isExpirationDirty = hasStatus
-      ? (expiresIn === 'custom' && expiresAt?.toISOString() !== currentStatus?.expires_at) ||
-      expiresIn !== currentStatus?.expiration_setting
-      : expiresAt || expiresIn !== defaultState.expiration_setting
-  const isWillPauseNotificationsDirty = hasStatus
-      ? selfProfile.data?.data.user_notifications_paused && currentStatus?.pause_notifications
-          ? !willPauseNotifications
-          : willPauseNotifications
-      : willPauseNotifications !== defaultState.pause_notifications
+  const emojiData = useEmojiMartData()
 
-  const isEmojiDirty = hasStatus ? emoji !== currentStatus?.emoji : emoji !== defaultState.emoji
-  const isMessageDirty = hasStatus ? message !== currentStatus?.message : message !== defaultState.message
-  const isDirty = isEmojiDirty || isMessageDirty || isExpirationDirty || isWillPauseNotificationsDirty
+
+
+
+  useEffect(()=>{
+
+    if(memberStatus) {
+      findEmojiMartEmojiByEmojiID(emojiData.data, currentStatus?.status_user_emoji_id ?? defaultState.emoji)
+
+      setEmoji(currentStatus?.status_user_emoji_id ??defaultState.emoji)
+      setMessage(currentStatus?.status_user_emoji_desc ?? defaultState.message)
+      setExpiresIn(currentStatus?.status_user_emoji_expiry_in ?? defaultState.expiration_setting)
+      setExpiresAt(currentStatus?.status_user_emoji_expiry_at ? new Date(currentStatus.status_user_emoji_expiry_at) : defaultState.expires_at)
+    }
+
+
+  },[memberStatus])
+
+  const hasStatus = Boolean(currentStatus)
 
   const { isMobile } = useMedia()
 
   const suggestedStatuses = useMemo(() => {
     const presets = [
-      ...(recentStatusesResp.data?.data?.filter((status) => status.expiration_setting !== 'custom') ?? []),
+      ...(recentStatusesResp.data?.data?.filter((status) => status.status_user_emoji_expiry_in !== 'custom') ?? []),
       ...DEFAULT_STATUSES
     ]
 
-    return uniqueBy(presets, (preset) => preset.message)
+    return uniqueBy(presets, (preset) => preset)
         .slice(0, 5)
         .reverse()
   }, [recentStatusesResp.data])
 
   function onSave() {
-    if (isDirty) {
-      if (!currentStatus) {
-        if (!expiresIn) return
-        // createStatus.mutate({
-        //   org: `${scope}`,
-        //   emoji,
-        //   message,
-        //   expiration_setting: expiresIn,
-        //   expires_at: expiresIn === 'custom' ? expiresAt?.toISOString() : undefined,
-        //   pause_notifications: willPauseNotifications
-        // })
-      } else {
-        // updateStatus.mutate({
-        //   org: `${scope}`,
-        //   emoji: isEmojiDirty ? emoji : undefined,
-        //   message: isMessageDirty ? message : undefined,
-        //   expiration_setting: isExpirationDirty && expiresIn ? expiresIn : undefined,
-        //   expires_at: expiresIn === 'custom' ? expiresAt?.toISOString() : undefined,
-        //   pause_notifications: willPauseNotifications
-        // })
-      }
 
-      closeModal()
-    }
+      post.makeRequest<UpdateUserEmojiStatusReq>({apiEndpoint: PostEndpointUrl.UpdateUserEmojiStatus, showToast:true, payload:{
+          emoji_expiry_time_at: (expiresAt ? Math.floor(expiresAt.getTime() / 1000).toString() : ""),
+          emoji_expiry_time_in: expiresIn || '',
+          emoji_id: emoji,
+          emoji_status_desc: message,
+          emoji_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        }})
+          .then(()=>{
+            userActiveEmojiStatus.mutate()
+            closeModal()
+          })
   }
 
 
   function resetStateToDefaults() {
-    setEmoji(defaultState.emoji)
-    setMessage(defaultState.message)
-    setExpiresIn(defaultState.expiration_setting)
-    setExpiresAt(defaultState.expires_at)
-    setWillPauseNotifications(defaultState.pause_notifications)
+
+    post.makeRequest<UpdateUserEmojiStatusReq>({apiEndpoint: PostEndpointUrl.ClearEmojiStatus})
+        .then(()=>{
+          setEmoji(defaultState.emoji)
+          setMessage(defaultState.message)
+          setExpiresIn(defaultState.expiration_setting)
+          setExpiresAt(defaultState.expires_at)
+          userActiveEmojiStatus.mutate()
+        })
   }
 
-  const timeRemaining = getTimeRemaining(currentStatus?.expires_at)
+  const timeRemaining = getTimeRemaining(currentStatus?.status_user_emoji_expiry_at)
 
   const closeModal = useCallback(() => {
-    setOpenState(false)
     setCustomExpirationCalendarDialogOpen(false);
+    setOpenState(false)
   }, [setOpenState])
+
+  const selectedEmoji = findEmojiMartEmojiByEmojiID(emojiData.data, emoji)?.skins[0].native
+
 
   return (
       <>
-    <Dialog onOpenChange={closeModal} open={dialogOpenState}>
+    <Dialog  open={dialogOpenState} modal={false}>
       {/*<DialogTrigger asChild>*/}
       {/*    <Button variant="secondary">Save</Button>*/}
       {/*</DialogTrigger>*/}
-      <DialogContent className="max-w-[95vw] md:max-w-[30vw] ">
+      <DialogContent className="max-w-[95vw] md:max-w-[30vw] [&>button]:hidden">
+        <button
+            onClick={closeModal}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !block"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </button>
         <DialogHeader>
           <DialogTitle className='text-start'>Status</DialogTitle>
-          <DialogDescription >
+          <DialogDescription>
           </DialogDescription>
         </DialogHeader>
         <div className='scrollbar-hide flex max-h-[40vh] flex-1 flex-col  px-2 py-3'>
-          {suggestedStatuses?.map((preset) => (
-              <Button
-                  variant='ghost'
-                  key={`${preset.message}`}
-                  className=' flex h-10 cursor-pointer justify-start gap-1.5 rounded-lg px-2 py-3 text-sm'
-                  onClick={() => {
-                    if (currentStatus) {
-                      // updateStatus.mutate({
-                      //   org: `${scope}`,
-                      //   emoji: preset.emoji,
-                      //   message: preset.message,
-                      //   expiration_setting: preset.expiration_setting,
-                      //   pause_notifications: willPauseNotifications
-                      // })
-                    } else {
-                      // createStatus.mutate({
-                      //   org: `${scope}`,
-                      //   emoji: preset.emoji,
-                      //   message: preset.message,
-                      //   expiration_setting: preset.expiration_setting,
-                      //   pause_notifications: willPauseNotifications
-                      // })
-                    }
+          {suggestedStatuses?.map((preset, i) => {
+            const emojiFound = findEmojiMartEmojiByEmojiID(emojiData.data, preset.status_user_emoji_id)
 
-                    setEmoji(preset.emoji)
-                    setMessage(preset.message)
-                    setExpiresIn(preset.expiration_setting)
+            return (
+                <Button
+                    variant='ghost'
+                    key={i}
+                    className=' flex h-10 cursor-pointer justify-start gap-1.5 rounded-lg px-2 py-3 text-sm'
+                    onClick={() => {
 
-                    closeModal()
-                  }}
-              >
+
+                      setEmoji(preset.status_user_emoji_id)
+                      setMessage(preset.status_user_emoji_desc)
+                      setExpiresIn(preset.status_user_emoji_expiry_in ?? defaultState.expiration_setting)
+
+                      // closeModal()
+                    }}
+                >
                 <span className='flex h-6 w-6 items-center justify-center text-center font-["emoji"]'>
-                  {preset.emoji}
+                  {emojiFound?.skins[0].native}
                 </span>
-                <span className='line-clamp-1'>{preset.message}</span>
-                <span className='text-muted-foreground text-sm'>{preset.expiration_setting.replace('_', ' ')}</span>
-              </Button>
-          ))}
+                  <span className='line-clamp-1'>{preset.status_user_emoji_desc}</span>
+                  <span className='text-muted-foreground text-sm'>{preset.status_user_emoji_expiry_in?.replace('_', ' ')}</span>
+                </Button>
+            )
+          })}
         </div>
         <Separator
             orientation="horizontal"
@@ -237,8 +235,7 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
               <ReactionPicker
                   onReactionSelect={(reaction) => {
                     if (!isStandardReaction(reaction)) return
-
-                    setEmoji(reaction.native)
+                    setEmoji(reaction.id)
                   }}
                   showCustomReactions={false}
               >
@@ -248,14 +245,16 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
                     className='group/emoji'
                     size={'icon'}
                 >
-                <span className='text-lg'>{emoji}</span>
-              </Button>
-            </ReactionPicker>
-          </div>
+                  <span className='text-lg'>{selectedEmoji}</span>
+                </Button>
+              </ReactionPicker>
+            </div>
             <Input
                 autoFocus={!isMobile}
                 value={message}
-                onChange={(e)=>{setMessage(e.target.value)}}
+                onChange={(e) => {
+                  setMessage(e.target.value)
+                }}
                 placeholder='What’s your status?'
                 className='bg-transparent rounded-md text-[15px] h-12 dark:bg-transparent pl-12 pr-24'
                 onKeyDown={(e) => {
@@ -269,7 +268,6 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
                 <div className='absolute right-1.5 top-1.5 '>
 
 
-
                   <Select onValueChange={(value) => {
 
                     if (value === 'custom') {
@@ -279,22 +277,22 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
                     setExpiresIn(value as StatusTime)
                     setExpiresAt(defaultState.expires_at)
                   }}
-                  defaultValue={'30m'}
+                          defaultValue={'30m'}
                           value={expiresIn ?? '30m'}
                   >
                     <SelectTrigger className="mr-2 decoration-0 border-0" aria-hidden={false}>
                       <SelectValue aria-hidden={false}>
                         {expiresIn && expiresIn === 'custom'
-                        ? getTimeRemaining(expiresAt?.toISOString())
-                        : (expiresIn?.replace('_', ' ') ?? timeRemaining)}</SelectValue >
+                            ? getTimeRemaining(expiresAt?.toISOString())
+                            : (expiresIn?.replace('_', ' ') ?? timeRemaining)}</SelectValue>
                     </SelectTrigger>
                     <SelectContent aria-hidden={false}>
-                        <SelectItem value="30m">30m</SelectItem>
-                        <SelectItem value="1h">1h</SelectItem>
-                        <SelectItem value="4h">4h</SelectItem>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="this_week">This Week</SelectItem>
-                        <SelectItem value="custom" aria-hidden={false} >Custom</SelectItem>
+                      <SelectItem value="30m">30m</SelectItem>
+                      <SelectItem value="1h">1h</SelectItem>
+                      <SelectItem value="4h">4h</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="this_week">This Week</SelectItem>
+                      <SelectItem value="custom" aria-hidden={false}>Custom</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -302,29 +300,7 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
             )}
           </div>
 
-          <div className='flex items-start justify-between'>
-            <div className='mt-1.5 flex flex-1 items-center gap-1'>
-              <div className='flex flex-1 justify-between gap-3'>
-                <div className='flex items-center gap-1'>
-                  <Checkbox checked={willPauseNotifications} onCheckedChange={(c) => {
-                    setWillPauseNotifications(c as boolean)
-                  }}/>
-                  <label className='ml-2 font-medium'>
-                    Pause notifications
-                  </label>
 
-
-                </div>
-                {willPauseNotifications && (
-
-                  <Link href='/me/settings#notification-schedule' className='text-blue-500 hover:underline'>
-                    {selfProfile.data?.data.user_custom_notification?.type === 'none' ? 'Set up a schedule' : 'Edit schedule'}
-                  </Link>
-
-                )}
-              </div>
-            </div>
-          </div>
         </div>
 
         <DialogFooter className="!flex-row">
@@ -334,23 +310,22 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
             </Button>
           </div>
           <div>
-            {hasStatus && !isDirty && (
+            {hasStatus &&  (
                 <Button
                     onClick={() => {
                       // deleteStatus.mutate({ org: `${scope}` })
                       resetStateToDefaults()
-                      closeModal()
                     }}
                 >
                   Clear current status
                 </Button>
             )}
 
-            {(isDirty || !hasStatus) && (
+            {( !hasStatus) && (
                 <Button
                     onClick={onSave}
                     // disabled={updateStatus.isPending || !isDirty || !message}
-                    disabled={ !isDirty || !message}
+                    disabled={!message}
                 >
                   Update status
                 </Button>
@@ -369,7 +344,7 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
               setExpiresAt(date)
             }}
         />
-        </>
+      </>
   );
 };
 
