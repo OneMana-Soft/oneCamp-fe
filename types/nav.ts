@@ -1,10 +1,13 @@
 import {LucideIcon} from "lucide-react";
+import {UserProfileDataInterface} from "@/types/user";
 
 export interface DesktopChildrenNavType {
 
     title: string
     path: string
     variant?: "default" | "ghost"
+    unread_count?:number
+    userProfile?: UserProfileDataInterface
 }
 
 export interface DesktopNavType {

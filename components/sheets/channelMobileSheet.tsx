@@ -2,7 +2,7 @@
 import {ArrowLeft, LogOut, Plus} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle} from "@/components/ui/sheet"
-import {useFetch} from "@/hooks/useFetch";
+import {useFetch, useFetchOnlyOnce} from "@/hooks/useFetch";
 import {GetEndpointUrl, PostEndpointUrl} from "@/services/endPoints";
 import {
     ChannelInfoInterfaceResp,
@@ -29,7 +29,7 @@ export function ChannelMobileSheet({ open, onOpenChange, channelId }: SidePanelP
     const [channelNotification, setChannelNotificationType] = useState<string>(NotificationType.NotificationAll)
     const postNotification  = usePost()
     const post  = usePost()
-    const selfProfile = useFetch<UserProfileInterface>(GetEndpointUrl.SelfProfile)
+    const selfProfile = useFetchOnlyOnce<UserProfileInterface>(GetEndpointUrl.SelfProfile)
     const channelInfo = useFetch<ChannelInfoInterfaceResp>(`${channelId ? GetEndpointUrl.ChannelBasicInfo+'/'+channelId : ''}`);
     const isChannelCreator = (selfProfile.data?.data.user_uuid == channelInfo.data?.channel_info.ch_created_by.user_uuid)
 

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {useEffect, useState} from "react";
 import { AttachmentType} from "@/types/attachment";
 import {getVideoThumbnail} from "@/lib/utils/getVideoThumbnail";
-import {useFetch} from "@/hooks/useFetch";
+import {useFetch, useMediaFetch} from "@/hooks/useFetch";
 import {GetMediaURLRes} from "@/types/file";
 import {useMedia} from "@/context/MediaQueryContext";
 
@@ -34,7 +34,7 @@ const UploadingAttachmentIcon = ({
 
     const {isDesktop } = useMedia();
 
-    const mediaRes = useFetch<GetMediaURLRes>(getUrl ? getUrl : '')
+    const mediaRes = useMediaFetch<GetMediaURLRes>(getUrl ? getUrl : '')
 
     useEffect( () => {
         if(attachmentType == 'video' && mediaRes.data?.url) {

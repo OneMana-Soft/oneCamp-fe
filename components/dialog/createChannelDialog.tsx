@@ -20,7 +20,16 @@ import {Switch} from "@/components/ui/switch";
 import {CheckCircle} from "lucide-react"; // Import the green tick icon
 import {useState} from "react";
 import {useFetch} from "@/hooks/useFetch";
-import {ChannelNameExistsInterface} from "@/types/channel"; // Import the useFetch hook
+import {
+    ChannelInfoInterface,
+    ChannelInfoListInterfaceResp,
+    ChannelJoinInterface,
+    ChannelNameExistsInterface
+} from "@/types/channel";
+import {useDispatch} from "react-redux";
+import {addUserChannelList} from "@/store/slice/userSlice";
+import {app_channel_path, app_home_path} from "@/types/paths";
+import {useRouter} from "next/navigation"; // Import the useFetch hook
 
 const createChannelFormSchema = z.object({
     channel_name: z
@@ -33,7 +42,7 @@ const createChannelFormSchema = z.object({
 });
 
 // Infer the type for the form values
-type CreateTeamFormValues = z.infer<typeof createChannelFormSchema>;
+type CreateChannelFormValues = z.infer<typeof createChannelFormSchema>;
 
 interface CreateTeamDialogProps {
     dialogOpenState: boolean;
@@ -50,7 +59,7 @@ const CreateChannelDialog: React.FC<CreateTeamDialogProps> = ({
         reset,
         watch,
         formState: { isValid },
-    } = useForm<CreateTeamFormValues>({
+    } = useForm<CreateChannelFormValues>({
         resolver: zodResolver(createChannelFormSchema),
         mode: "onChange",
         defaultValues: {
@@ -58,6 +67,8 @@ const CreateChannelDialog: React.FC<CreateTeamDialogProps> = ({
             channel_private: false,
         },
     });
+
+    const router = useRouter()
 
     const { makeRequest, isSubmitting } = usePost();
     const [channelNameToCheck, setChannelNameToCheck] = useState<string | null>(null);
@@ -67,14 +78,20 @@ const CreateChannelDialog: React.FC<CreateTeamDialogProps> = ({
     );
 
     // Handle form submission
-    const onSubmit = async (data: CreateTeamFormValues) => {
-        await makeRequest<CreateTeamFormValues>({
+    const onSubmit = (data: CreateChannelFormValues) => {
+        makeRequest<CreateChannelFormValues, ChannelInfoInterface>({
             payload: data,
             apiEndpoint: PostEndpointUrl.CreateChannel,
+        }).then((res)=> {
+
+            setChannelNameToCheck(null)
+            if(res) {
+                router.push(app_channel_path +'/'+res.ch_uuid);
+
+            }
+            closeModal()
         });
 
-        setChannelNameToCheck(null)
-        closeModal()
     };
 
     // Close the dialog

@@ -58,6 +58,7 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
     }
 
     const clickFwdMessage = () => {
+        if(selectedUsersOrChannels.length == 0) return
         makeRequest<MessageFwdReq>({
             apiEndpoint: PostEndpointUrl.FwdMsgToChatOrChannel,
             payload: {
@@ -67,13 +68,18 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
                 fwd_post_uuid: postUUID||'',
                 fwd_chat_uuid: chatUUID||'',
                 fwd_text: fwdMsgInputState.fwdMsgBody
-            }
+            },
+            showToast: true
         }).then(()=>{
             dispatch(clearFwdMsgInputState())
+            closeModal()
         })
 
     }
 
+    const closeModal = () => {
+        onOpenChange(false)
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}  modal={false}>
@@ -115,7 +121,7 @@ export const ForwardMessage = ({ chatUUID, channelUUID, postUUID, open, onOpenCh
 
                 <DialogFooter>
                     <Button onClick={clickFwdMessage}
-                    disabled={isSubmitting || selectedUsersOrChannels.length == 0}
+                    disabled={isSubmitting || selectedUsersOrChannels.length == 0 || chatInfo.isLoading || postInfo.isLoading}
                     >
                         {isSubmitting && <LoaderCircle className="h-4 w-4 animate-spin"/>}
                         Forward

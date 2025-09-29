@@ -43,7 +43,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => (
 
       <Separator orientation="vertical" className="mx-2 h-7" />
 
-      <SectionFour editor={editor} activeActions={['orderedList', 'bulletList']} mainActionCount={0} />
+      <SectionFour editor={editor} activeActions={['orderedList', 'bulletList']} mainActionCount={0}/>
 
       <Separator orientation="vertical" className="mx-2 h-7" />
 

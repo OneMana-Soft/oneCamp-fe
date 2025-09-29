@@ -9,11 +9,12 @@ import type * as React from "react";
 import {UserProfileDataInterface} from "@/types/user";
 
 interface ChannelMessageAvatarProps {
-    userInfo: UserProfileDataInterface;
+    userInfo?: UserProfileDataInterface;
 }
 export const ChannelMessageAvatar = ({userInfo}: ChannelMessageAvatarProps) => {
-    const profileImageRes = useFetch<GetMediaURLRes>(userInfo.user_profile_object_key ? GetEndpointUrl.PublicAttachmentURL+'/'+userInfo.user_profile_object_key : '');
-    const nameInitial = getNameInitials(userInfo.user_name);
+
+    const profileImageRes = useFetch<GetMediaURLRes>(userInfo?.user_profile_object_key ? GetEndpointUrl.PublicAttachmentURL+'/'+userInfo.user_profile_object_key : '');
+    const nameInitial = getNameInitials(userInfo?.user_name);
 
     return (
         <Avatar className="h-full w-full">

@@ -5,6 +5,8 @@ import {Button} from "@/components/ui/button";
 import {openCreateChatMessageDialog} from "@/store/slice/dialogSlice";
 import {Plus} from "lucide-react";
 import {useDispatch} from "react-redux";
+import {ChatUserList} from "@/components/chat/chatUserList";
+import {usePathname} from "next/navigation";
 
 export default function ChatLayout({
                                       children,
@@ -14,6 +16,9 @@ export default function ChatLayout({
     const {isMobile, isDesktop} = useMedia()
     const dispatch = useDispatch();
 
+    const chatId = usePathname().split('/')[3]
+
+
     return (
         <>
             {
@@ -22,8 +27,8 @@ export default function ChatLayout({
 
             {
                 isDesktop && <div className='flex  h-full'>
-                    <div className='w-[20vw] h-full flex flex-col border-r '>
-                        <div className=' text-lg flex justify-between p-4 border-b text-center'>
+                    <div className='w-[26vw] h-full flex flex-col border-r '>
+                        <div className=' text-lg flex justify-between p-4 pb-2 pt-2  text-center'>
                             <div className='text-center flex justify-between items-center'>
                                 Messages
                             </div>
@@ -32,10 +37,10 @@ export default function ChatLayout({
                             </Button>
                         </div>
                         <div>
-                            pojpo
+                            <ChatUserList chatId={chatId}/>
                         </div>
                     </div>
-                    <div className=' w-[75vw]'>
+                    <div className=' w-full'>
 
                         {children}
                     </div>

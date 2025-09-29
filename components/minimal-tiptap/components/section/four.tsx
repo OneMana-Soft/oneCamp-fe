@@ -44,16 +44,17 @@ interface SectionFourProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
   activeActions?: ListItemAction[]
   mainActionCount?: number
+  toggleToolbar?: boolean
 }
 
 export const SectionFour: React.FC<SectionFourProps> = ({
   editor,
   activeActions = formatActions.map(action => action.value),
   mainActionCount = 0,
+                                                          toggleToolbar,
   size,
   variant
 }) => {
-  const {isMobile} = useMedia()
 
   return (
     <>
@@ -72,7 +73,7 @@ export const SectionFour: React.FC<SectionFourProps> = ({
         size={size}
         variant={variant}
       />
-      {isMobile &&
+      {toggleToolbar &&
           <EmojiReactionPicker editor={editor} size={size} variant={variant} />
       }
     </>

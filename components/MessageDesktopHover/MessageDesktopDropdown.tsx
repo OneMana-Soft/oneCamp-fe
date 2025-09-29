@@ -9,13 +9,19 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
-import {Bell, MoreVertical, Pencil, Trash2} from "lucide-react";
+import {Bell, Bookmark, MoreVertical, Pencil, Trash2} from "lucide-react";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 
 interface MessageDesktopDropdownProps {
     setIsDropdownOpen: (open: boolean) => void;
+    getReplyNotification?: () => void;
+    editMessage: () => void;
+    isAdmin?: boolean;
+    isOwner: boolean;
+    deleteMessage: () => void;
 }
 
-export default function MessageDesktopDropdown({ setIsDropdownOpen }: MessageDesktopDropdownProps) {
+export default function MessageDesktopDropdown({ isOwner, isAdmin, setIsDropdownOpen, getReplyNotification, editMessage, deleteMessage }: MessageDesktopDropdownProps) {
 
     return (
         <DropdownMenu
@@ -23,15 +29,22 @@ export default function MessageDesktopDropdown({ setIsDropdownOpen }: MessageDes
                 setIsDropdownOpen(open);
             }}
         >
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 ">
-                    <MoreVertical className="h-4 w-4" stroke='#616060'/>
-                </Button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 ">
+                            <MoreVertical className="h-4 w-4" stroke='#616060'/>
+                        </Button>
+                    </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>More options</p>
+                </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent className="w-56" align="end" forceMount>
 
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>
+                    {getReplyNotification && <DropdownMenuItem onClick={getReplyNotification}>
                         <div className='flex items-center justify-center space-x-1.5'>
                             <div>
                                 <Bell className='h-4 w-4'/>
@@ -42,8 +55,8 @@ export default function MessageDesktopDropdown({ setIsDropdownOpen }: MessageDes
                         </div>
 
                         {/*<DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>*/}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    </DropdownMenuItem>}
+                    {isOwner && <DropdownMenuItem onClick={editMessage}>
                         <div className='flex items-center justify-center space-x-1.5'>
                             <div>
                                 <Pencil className='h-4 w-4'/>
@@ -54,10 +67,10 @@ export default function MessageDesktopDropdown({ setIsDropdownOpen }: MessageDes
                         </div>
 
                         {/*<DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>*/}
-                    </DropdownMenuItem>
+                    </DropdownMenuItem>}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator/>
-                <DropdownMenuItem>
+                {(isAdmin || isOwner) && <DropdownMenuItem onClick={deleteMessage}>
 
                     <div className='flex items-center justify-center space-x-1.5 text-destructive'>
                         <div>
@@ -68,7 +81,7 @@ export default function MessageDesktopDropdown({ setIsDropdownOpen }: MessageDes
                         </div>
                     </div>
                     {/*<DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>*/}
-                </DropdownMenuItem>
+                </DropdownMenuItem>}
             </DropdownMenuContent>
         </DropdownMenu>
     )

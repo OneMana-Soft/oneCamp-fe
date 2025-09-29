@@ -31,7 +31,7 @@ const EditChannelMemberDialog: React.FC<EditTeamDialogProps> = ({
 
 
     return (
-        <Dialog onOpenChange={closeModal} open={dialogOpenState}>
+        <Dialog onOpenChange={closeModal} open={dialogOpenState} modal={false}>
             <DialogContent className="max-w-[95vw] md:max-w-[30vw]">
                 <DialogHeader>
                     <DialogTitle className="text-start">Channel members</DialogTitle>

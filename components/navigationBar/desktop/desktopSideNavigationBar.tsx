@@ -12,6 +12,10 @@ import {
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
 import Link from "next/link";
 import {DesktopNavType} from "@/types/nav";
+import {userInfo} from "node:os";
+import {DesktopNavigationChatAvatar} from "@/components/navigationBar/desktop/desktopNavigationChatAvatar";
+import {DesktopNavigationEmojiStatus} from "@/components/navigationBar/desktop/desktopNavigationChatEmojiStatus";
+import React from "react";
 
 
 export function DesktopSideNavigationBar({ links, isCollapsed }: {links:DesktopNavType[], isCollapsed: boolean}) {
@@ -28,7 +32,7 @@ export function DesktopSideNavigationBar({ links, isCollapsed }: {links:DesktopN
                             <Tooltip key={index} delayDuration={0}>
                                 <TooltipTrigger asChild>
                                     <Link
-                                        href={`/${link.path}`}
+                                        href={`${link.path}`}
                                         className={cn("hover:cursor-pointer",
                                             buttonVariants({ variant: link.variant, size: "icon" }),
                                             "h-10 w-10",
@@ -106,8 +110,12 @@ export function DesktopSideNavigationBar({ links, isCollapsed }: {links:DesktopN
                                                             "justify-start space-x-2 md:space-x-1"
                                                         )}
                                                     >
-                                                        {link.icon && <link.icon className=" md:h-4 md:w-5 h-6 w-5" />}
-                                                        <div className=' md:text-sm font-normal text-lg'>{ch.title}</div>
+                                                        {ch.userProfile && <DesktopNavigationChatAvatar userInfo={ch.userProfile}/> }
+                                                        {!ch.userProfile && link.icon && <link.icon className=" md:h-4 md:w-5 h-6 w-5" />}
+                                                        <div className={` md:text-sm font-normal text-lg ${ch.unread_count ? 'font-semibold':''}`}>{ch.title}</div>
+                                                        {ch.userProfile && <DesktopNavigationEmojiStatus userUUID={ch.userProfile.user_uuid}/>}
+
+
 
                                                     </Link>
                                                 )
@@ -121,7 +129,7 @@ export function DesktopSideNavigationBar({ links, isCollapsed }: {links:DesktopN
                                 :
                                 <Link
                                     key={index}
-                                    href={`/${link.path}`}
+                                    href={`${link.path}`}
                                     className={cn("hover:cursor-pointer",
                                         buttonVariants({ variant: link.variant, size: "sm" }),
                                         link.variant === "default" &&

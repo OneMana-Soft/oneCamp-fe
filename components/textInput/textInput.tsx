@@ -30,31 +30,35 @@ export interface MinimalTiptapProps
   className?: string;
   editorContentClassName?: string;
   attachmentOnclick?: ()=>void
-  buttonLabel?: string;
+  PrimaryButtonIcon?: LucideIcon
   children?: React.ReactNode
   ButtonIcon?: LucideIcon
   buttonOnclick?: () => Promise<void> | void;
-  secondaryButtonLabel?: string;
+  SecondaryButtonIcon?: LucideIcon
+  fixedToolbarToBottom?: boolean;
   secondaryButtonOnclick?: () => Promise<void> | void;
+    toggleToolbar?: boolean
 }
 
-const Toolbar = ({ editor, toggledTextEditor, setToggledTextEditor }: { editor: Editor, toggledTextEditor: boolean,  setToggledTextEditor: (b: boolean)=>void}) => {
+const Toolbar = ({ editor, toggledTextEditor, setToggledTextEditor, toggleToolbar }: { editor: Editor, toggledTextEditor: boolean,  setToggledTextEditor: (b: boolean)=>void, toggleToolbar: boolean}) => {
 
 
   const {isMobile, isDesktop} = useMedia()
+    toggleToolbar = toggleToolbar || isMobile
 
 
   return (
-      <div className="shrink-0 overflow-x-auto  p-2">
+      <div className="shrink-0 overflow-x-auto p-1 pb-0 pl-0">
         <div className="flex w-max items-center gap-px justify-between">
           {/*<SectionOne editor={editor} activeLevels={[1, 2, 3]} variant="outline" />*/}
           {/*<Separator orientation="vertical" className="mx-2 h-7" />*/}
 
 
-          {(isMobile && !toggledTextEditor) ?
+          {(toggleToolbar && !toggledTextEditor) ?
+              <>
               <ToolbarButton
-                  tooltip="Text color"
-                  aria-label="Text color"
+                  tooltip="Text format"
+                  aria-label="Text format"
                   className="w-12"
                   variant={"outline"}
                   onClick={()=>{setToggledTextEditor(true)}}
@@ -62,10 +66,21 @@ const Toolbar = ({ editor, toggledTextEditor, setToggledTextEditor }: { editor: 
                 <LetterCaseCapitalizeIcon className="size-5"/>
 
               </ToolbarButton>
+
+                  <Separator orientation="vertical" className="mx-2 h-7"/>
+
+                  <SectionFour
+                  editor={editor}
+                  activeActions={["bulletList", "orderedList"]}
+                  mainActionCount={2}
+                  variant="outline"
+                  toggleToolbar={toggleToolbar}
+              />
+              </>
               :
               <>
                 {
-                  isMobile && <Button size='icon' variant='ghost' onClick={()=>{setToggledTextEditor(false)}}><X/></Button>
+                    toggleToolbar && <Button size='icon' variant='ghost' onClick={()=>{setToggledTextEditor(false)}}><X/></Button>
                 }
                 <SectionTwo
                     editor={editor}
@@ -73,13 +88,14 @@ const Toolbar = ({ editor, toggledTextEditor, setToggledTextEditor }: { editor: 
                     mainActionCount={4}
                     variant="outline"
                 />
-                <Separator orientation="vertical" className="mx-2 h-7"/>
+                {!toggleToolbar && <><Separator orientation="vertical" className="mx-2 h-7"/>
                 <SectionFour
                     editor={editor}
                     activeActions={["bulletList", "orderedList"]}
                     mainActionCount={2}
                     variant="outline"
-                />
+                    toggleToolbar={toggleToolbar}
+                /></>}
 
 
                 {isDesktop && <><Separator orientation="vertical" className="mx-2 h-7"/>
@@ -88,6 +104,7 @@ const Toolbar = ({ editor, toggledTextEditor, setToggledTextEditor }: { editor: 
                     activeActions={["blockquote", "codeBlock", "horizontalRule"]}
                     mainActionCount={3}
                     variant="outline"
+                    toggleToolbar={toggleToolbar}
                 /></>}
 
 
@@ -108,18 +125,21 @@ export const MinimalTiptapTextInput = React.forwardRef<HTMLDivElement, MinimalTi
         {
           value,
             isOutputText,
+            toggleToolbar = false,
+
           onChange,
           className,
-          buttonLabel,
+          PrimaryButtonIcon,
           ButtonIcon,
           buttonOnclick,
-          secondaryButtonLabel,
+          SecondaryButtonIcon,
           secondaryButtonOnclick,
           editable,
           children,
             attachmentOnclick,
             editorContentClassName,
           content,
+            fixedToolbarToBottom,
           ...props
         },
         ref
@@ -161,14 +181,13 @@ export const MinimalTiptapTextInput = React.forwardRef<HTMLDivElement, MinimalTi
       useEffect(() => {
         if (editor) {
           const c = content as string;
-          if (content !== undefined && editor.getHTML() !== c.trim()) {
-            editor.commands.setContent(content || "");
-          }
+
+            if(content !== undefined && editor.getHTML() !== c?.trim()) {
+                editor.commands.setContent(content || "")
+
+            }
 
           editor.setEditable(editable || false);
-
-
-
 
         }
       }, [editor, content, editable]);
@@ -198,23 +217,23 @@ export const MinimalTiptapTextInput = React.forwardRef<HTMLDivElement, MinimalTi
                 ref={divRef}
             />
             { editor.isEditable && (
-                <div   className={isMobile?'fixed bottom-0 w-full right-0 pl-0 p-2 bg-gray-50 dark:bg-gray-900 pt-0 ':""}>
+                <div   className={isMobile && fixedToolbarToBottom ?'fixed bottom-0 w-full right-0 p-2 bg-gray-50 dark:bg-gray-900 pt-0 ':""}>
                     {children}
-                  <div className="flex justify-between md:mr-2">
-                    <Toolbar editor={editor} toggledTextEditor={toggledTextEditor}  setToggledTextEditor={setToggledTextEditor}/>
+                  <div className="flex justify-between md:mr-2 ">
+                    <Toolbar editor={editor} toggledTextEditor={toggledTextEditor}  setToggledTextEditor={setToggledTextEditor} toggleToolbar={toggleToolbar}/>
                     <div className="flex justify-center items-center gap-x-2">
                         {
                             attachmentOnclick && !(isMobile && toggledTextEditor) &&
                             <Button size={"icon"} variant={'ghost'} className="rounded-full" onClick={attachmentOnclick}><Paperclip /> </Button>
 
                         }
-                      {secondaryButtonLabel && secondaryButtonOnclick && (
-                          <Button onClick={secondaryButtonOnclick} variant="outline">
-                            {secondaryButtonLabel}
+                      {SecondaryButtonIcon && secondaryButtonOnclick && (
+                          <Button onClick={secondaryButtonOnclick}  size={"icon"} className="bg-destructive rounded-full">
+                            <SecondaryButtonIcon/>
                           </Button>
                       )}
-                      {buttonLabel && buttonOnclick && (
-                          <Button onClick={buttonOnclick}>{buttonLabel}</Button>
+                      {PrimaryButtonIcon && buttonOnclick && (
+                          <Button onClick={buttonOnclick} size={"icon"} className="rounded-full bg-green-700"><PrimaryButtonIcon/></Button>
                       )}
                       {ButtonIcon && buttonOnclick && (
                           <Button size={"icon"} className="rounded-full" onClick={buttonOnclick}><ButtonIcon /></Button>

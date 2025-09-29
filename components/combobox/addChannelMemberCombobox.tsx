@@ -60,6 +60,7 @@ const AddTeamMemberCombobox: React.FC<AddTeamMemberComboboxPropInterface> = ({ha
                                         key={user.user_uuid}
                                         value={user.user_uuid}
                                         onSelect={(currentValue) => {
+                                            console.log("dssdvvd ", currentValue)
                                             setValue(currentValue === value ? "" : currentValue)
                                             setOpen(false)
                                         }}

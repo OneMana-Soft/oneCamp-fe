@@ -7,14 +7,26 @@ import DraggableDrawer from "@/components/drawers/dragableDrawer";
 import { useEffect, useRef, useState } from "react";
 import { ChannelFileUpload } from "@/components/fileUpload/channelFileUpload";
 import { openChannelFileUpload } from "@/store/slice/fileUploadSlice";
-import { useDispatch } from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {
 
-export const MobileChannelTextInput = ({ channelId }: { channelId: string }) => {
+    updateChannelInputText
+} from "@/store/slice/channelSlice";
+import {RootState} from "@/store/store";
+import {TypingIndicator} from "@/components/typingIndicator/typyingIndicaator";
+import {useFetchOnlyOnce} from "@/hooks/useFetch";
+import {UserProfileInterface} from "@/types/user";
+import {GetEndpointUrl} from "@/services/endPoints";
+
+
+export const MobileChannelTextInput = ({ channelId, handleSend }: { channelId: string, handleSend: ()=>void }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null); // New ref for the entire content
     const [isExpanded, setIsExpanded] = useState(false);
-    const [initialHeight, setInitialHeight] = useState(130 + 90); // Default height
+    const [initialHeight, setInitialHeight] = useState(126); // Default height
     const dispatch = useDispatch();
+
+    const channelInputState = useSelector((state: RootState) => state.channel.channelInputState[channelId] || {});
 
     useEffect(() => {
         if (!contentRef.current) return;
@@ -31,8 +43,11 @@ export const MobileChannelTextInput = ({ channelId }: { channelId: string }) => 
         return () => resizeObserver.disconnect();
     }, []);
 
+
+
     return (
         <DraggableDrawer isExpanded={isExpanded} setIsExpanded={setIsExpanded} initialHeight={initialHeight}>
+
             <div ref={contentRef}> {/* Wrap all content in a ref */}
                 <div ref={editorRef}>
                     <MinimalTiptapTextInput
@@ -41,14 +56,20 @@ export const MobileChannelTextInput = ({ channelId }: { channelId: string }) => 
                         className={cn("max-w-full rounded-xl h-auto border-none")}
                         editorContentClassName="overflow-auto mb-2"
                         output="html"
-                        content={""}
+                        content={channelInputState.inputTextHTML}
                         placeholder={"message"}
                         editable={true}
+                        buttonOnclick={handleSend}
                         ButtonIcon={SendHorizontal}
-                        buttonOnclick={() => {}}
-                        editorClassName="focus:outline-none px-5 py-4"
-                        onChange={() => {}}
+                        editorClassName="focus:outline-none px-5 "
+                        onChange={(content ) => {
+
+                            dispatch(updateChannelInputText({channelId, inputTextHTML: content as string}))
+                        }}
+                        fixedToolbarToBottom={true}
                     >
+
+
 
                     </MinimalTiptapTextInput>
                     <div className='pb-6'>

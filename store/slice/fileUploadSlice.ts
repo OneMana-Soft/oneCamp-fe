@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   channelFileUpload: { isOpen: false },
+  channelCommentFileUpload: { isOpen: false },
+  chatCommentFileUpload: { isOpen: false },
   chatFileUpload: { isOpen: false },
   fwdMsgFileUpload: { isOpen: false },
 
@@ -26,6 +28,42 @@ export const fileUpload = createSlice({
 
     ) => {
       state.channelFileUpload = {
+        isOpen: true,
+      };
+    },
+
+    closeChannelCommentFileUpload: (
+        state,
+
+    ) => {
+      state.channelCommentFileUpload = {
+        isOpen: false,
+      };
+    },
+
+    openChannelCommentFileUpload: (
+        state,
+
+    ) => {
+      state.channelCommentFileUpload = {
+        isOpen: true,
+      };
+    },
+
+    closeChatCommentFileUpload: (
+        state,
+
+    ) => {
+      state.chatCommentFileUpload = {
+        isOpen: false,
+      };
+    },
+
+    openChatCommentFileUpload: (
+        state,
+
+    ) => {
+      state.chatCommentFileUpload = {
         isOpen: true,
       };
     },
@@ -66,12 +104,18 @@ export const fileUpload = createSlice({
       };
     },
 
+
+
   },
 });
 
 export const {
   openChannelFileUpload,
   closeChannelFileUpload,
+  closeChannelCommentFileUpload,
+  openChannelCommentFileUpload,
+  closeChatCommentFileUpload,
+  openChatCommentFileUpload,
   openFwdMsgFileUpload,
   closeFwdMsgFileUpload,
   openChatFileUpload,

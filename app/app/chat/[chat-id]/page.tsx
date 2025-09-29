@@ -1,78 +1,111 @@
 "use client";
 
-
-import MinimalTiptapTextInput from "@/components/textInput/textInput";
-import {cn} from "@/lib/utils/cn";
-import {ChevronLeft, ChevronRight, SendHorizontal} from "lucide-react";
-import {useMedia} from "@/context/MediaQueryContext";
-import {useEffect, useRef, useState} from "react";
-import {MobileTextInput} from "@/components/textInput/mobileTextInput";
-import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
-import {Button} from "@/components/ui/button";
+import { useMedia } from "@/context/MediaQueryContext";
+import {usePathname} from "next/navigation";
+import {CreateOrUpdatePostsReq, CreatePostPaginationResRaw, CreatePostsRes, PostsRes} from "@/types/post";
+import {GetEndpointUrl, PostEndpointUrl} from "@/services/endPoints";
+import {clearChannelInputState, createPostLocally, updateChannelScrollToBottom} from "@/store/slice/channelSlice";
+import {UserProfileDataInterface, UserProfileInterface} from "@/types/user";
+import {usePost} from "@/hooks/usePost";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "@/store/store";
-import {toggleRightPanel} from "@/store/slice/rightPanelSlice";
+import {useFetch, useFetchOnlyOnce} from "@/hooks/useFetch";
+import {ChatIdMobile} from "@/components/chat/chatIdMobile";
+import {ChatIdDesktop} from "@/components/chat/chatIdDesktop";
+import {ChatInfo, CreateChatMessagePaginationResRaw, CreateChatRes, CreateOrUpdateChatsReq} from "@/types/chat";
+import {
+    AddUserInChatList,
+    clearChatInputState,
+    createChat,
+    CreateOrUpdateUserInChatList,
+    updateChatScrollToBottom
+} from "@/store/slice/chatSlice";
+import {useEffect} from "react";
+import {addUserToUserChatList} from "@/store/slice/userSlice";
+import {removeEmptyPTags} from "@/lib/utils/removeEmptyPTags";
 
-function ChatIdPage() {
-    const { isMobile, isDesktop } = useMedia()
 
-    const dispatch = useDispatch()
-    const rightPanelState = useSelector((state: RootState) => state.rightPanel.rightPanelState);
-
-    const editorRef = useRef<HTMLDivElement>(null)
+function Chat() {
 
 
-    useEffect(() => {
-        if (!editorRef.current) return
+    const chatId = usePathname().split('/')[3]
 
-    }, [])
+    const post = usePost()
 
+    const chatMessageState = useSelector((state: RootState) => state.chat.chatMessages[chatId] || [] as ChatInfo[]);
+
+    const chatState = useSelector((state: RootState) => state.chat.chatInputState[chatId] || {});
+
+    const dispatch = useDispatch();
+
+    const selfProfile = useFetchOnlyOnce<UserProfileInterface>(GetEndpointUrl.SelfProfile)
+
+    const otherUserInfo  = useFetchOnlyOnce<UserProfileInterface>(`${GetEndpointUrl.SelfProfile}/${chatId}`)
+
+    const latestMsg = useFetch<CreateChatMessagePaginationResRaw>( GetEndpointUrl.GetChatLatestMessage + '/' + chatId)
+
+
+    useEffect(()=>{
+
+        if(otherUserInfo.data?.data){
+
+            dispatch(addUserToUserChatList({chatUser: otherUserInfo.data.data}))
+            dispatch(AddUserInChatList({user: otherUserInfo.data.data}))
+
+        }
+
+    }, [otherUserInfo.data?.data])
+
+    const handleSend = () => {
+
+        const body = removeEmptyPTags(chatState.chatBody)
+
+        if(body.length==0) return
+
+        post.makeRequest<CreateOrUpdateChatsReq, CreateChatRes>({
+            apiEndpoint: PostEndpointUrl.CreateChatMessage,
+            payload: {
+                media_attachments: chatState.filesUploaded,
+                to_uuid: chatId,
+                text_html: body
+            }
+        })
+            .then((res)=>{
+
+                if(res && latestMsg.data?.data && latestMsg.data?.data?.chats?.[0]?.chat_uuid == chatMessageState[chatMessageState.length -1].chat_uuid) {
+                    dispatch(createChat({
+                        dmId: chatId,
+                        chatCreatedAt:res?.chat_created_at,
+                        chatBy: selfProfile.data?.data || {} as UserProfileDataInterface,
+                        chatText: body,
+                        attachments: chatState.filesUploaded,
+                        chatId: res?.chat_uuid,
+                        chatTo: otherUserInfo.data?.data || {} as UserProfileDataInterface,
+                    }))
+
+                    latestMsg.mutate()
+                    dispatch(updateChatScrollToBottom({chatId: chatId, scrollToBottom: true}))
+
+
+                }
+
+            })
+        dispatch(clearChatInputState({chatUUID: chatId}))
+    }
+
+
+
+
+    const { isMobile, isDesktop } = useMedia();
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex-1"></div>
-            {
-                isDesktop &&
+        <>
 
-                <div className='flex flex-col'>
-                    <div className="flex-1 flex"></div>
-                    <div className="sticky bottom-0 left-0 right-0 z-50 border-t p-4 ">
-                        <div>
-                            <MinimalTiptapTextInput
-                                throttleDelay={300}
-                                className={cn("max-w-full rounded-xl h-auto border-none")}
-                                editorContentClassName="overflow-auto mb-2"
-                                output="html"
-                                content={""}
-                                placeholder={"message"}
-                                editable={true}
-                                ButtonIcon={SendHorizontal}
-                                buttonOnclick={() => {
-                                }}
-                                editorClassName="focus:outline-none px-5 py-4"
-                                onChange={() => {
-                                }}
-                            />
-                        </div>
-                    </div>
-                    <Button
-                        onClick={() => dispatch(toggleRightPanel())}
-                        className=""
-                    >
-                        {rightPanelState.isOpen ? <ChevronRight/> : <ChevronLeft/>}
-                    </Button>
-                </div>
-            }
+            {isMobile && <ChatIdMobile chatId={chatId} handleSend={handleSend}/>}
 
-            {isMobile && (
-
-                <MobileTextInput/>
-            )}
-
-        </div>
-
-
+            {isDesktop && <ChatIdDesktop chatId={chatId} handleSend={handleSend}/>}
+        </>
     );
 }
 
-export default ChatIdPage;
+export default Chat;

@@ -6,6 +6,7 @@ import {OrgAvatarNav} from "@/components/navigationBar/orgAvatarNav";
 import {openOrgDrawer, } from "@/store/slice/drawerSlice";
 import {ArrowLeft} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import {app_channel_path} from "@/types/paths";
 
 export function MobileTopNavigationBarFirst() {
     const router = useRouter();
@@ -18,10 +19,11 @@ export function MobileTopNavigationBarFirst() {
             case "task":
             case "chat":
             case "channel":
+            case "forward":
             case "home":
                 if(path.length < 4)
                 return <div onClick={()=>{dispatch(openOrgDrawer())}}><OrgAvatarNav/></div>;
-                if(path.length < 5)
+                if(path.length < 6)
                     return <Button variant='ghost' size='icon' onClick={()=>{router.back()}}><ArrowLeft className='h-5' /></Button>
                 break;
             case "doc":

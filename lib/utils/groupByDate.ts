@@ -5,11 +5,9 @@ export function groupByDate<T>(
 ): Record<string, T[]> {
     return [...items] // Create a copy of the array to avoid mutating the original
         .sort((a, b) => {
-            if (sortOrder === 'asc') {
-                return getDate(a) < getDate(b) ? -1 : 1;
-            } else {
-                return getDate(b) < getDate(a) ? -1 : 1;
-            }
+            const dateA = new Date(getDate(a)).getTime();
+            const dateB = new Date(getDate(b)).getTime();
+            return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
         })
         .reduce(
             (acc, item) => {

@@ -16,7 +16,8 @@ import {notEmpty} from "@/lib/utils/notEmpty";
 import {useSearchReactions} from "@/hooks/reactions/useSearchReactions";
 import {Input} from "@/components/ui/input";
 import {MobileReactionPickerCategory} from "@/components/reactionPicker/MobileReactionPickerCategory";
-import * as React from "react"; // Import emoji data
+import * as React from "react";
+import {app_channel_path} from "@/types/paths"; // Import emoji data
 
 
 export interface MobileReactionPickerProps {
@@ -41,6 +42,11 @@ export function EmojiPickerDrawer({ showCustomReactions, onReactionSelect, react
     const handleReactionSelect = (emoji: Parameters<MobileReactionPickerProps['onReactionSelect']>[number]) => {
         addReactionIdToFrequents({ id: emoji.id })
         onReactionSelect(emoji)
+
+        setTimeout(() => {
+            closeDrawer()
+        }, 500);
+
     }
 
     useLayoutEffect(() => {

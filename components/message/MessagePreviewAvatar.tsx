@@ -1,5 +1,5 @@
 import {UserProfileDataInterface} from "@/types/user";
-import {useFetch} from "@/hooks/useFetch";
+import {useFetch, useMediaFetch} from "@/hooks/useFetch";
 import {GetMediaURLRes} from "@/types/file";
 import {GetEndpointUrl} from "@/services/endPoints";
 import {getNameInitials} from "@/lib/utils/getNameIntials";
@@ -10,7 +10,7 @@ interface MessagePreviewAvatarProps {
     userInfo?: UserProfileDataInterface;
 }
 export const MessagePreviewAvatar = ({userInfo}: MessagePreviewAvatarProps) => {
-    const profileImageRes = useFetch<GetMediaURLRes>(userInfo && userInfo.user_profile_object_key ? GetEndpointUrl.PublicAttachmentURL+'/'+userInfo.user_profile_object_key : '');
+    const profileImageRes = useMediaFetch<GetMediaURLRes>(userInfo && userInfo.user_profile_object_key ? GetEndpointUrl.PublicAttachmentURL+'/'+userInfo.user_profile_object_key : '');
     const nameInitial = getNameInitials(userInfo && userInfo.user_name);
 
     return (

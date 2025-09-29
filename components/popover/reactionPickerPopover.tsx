@@ -13,13 +13,14 @@ import {CONTAINER_STYLES} from "@/lib/utils/containerStyles";
 export interface ReactionPickerPopoverProps {
     showCustomReactions : boolean
     onReactionSelect: (reaction: StandardReaction | SyncCustomReaction) => void
+    setPopupState?: (state: boolean) => void
     children: React.ReactNode
 }
 
 const COLLISION_PADDING = 16
 const SIDE_OFFSET = 4
 
-export function ReactionPickerPopover({showCustomReactions, onReactionSelect, children}:ReactionPickerPopoverProps) {
+export function ReactionPickerPopover({showCustomReactions, onReactionSelect, setPopupState, children}:ReactionPickerPopoverProps) {
 
     const triggerRef = useRef<HTMLButtonElement>(null)
     const [triggerRect, setTriggerRect] = useState<{ top: number; bottom: number }>({ top: 0, bottom: 0 })
@@ -36,9 +37,21 @@ export function ReactionPickerPopover({showCustomReactions, onReactionSelect, ch
         }
     }, [popOpened, triggerRef])
 
+    const stateChange = (b: boolean) => {
+
+        setPopOpened(b)
+
+        if(setPopupState) setPopupState(b)
+    }
+
+    const handleReactionSelect = (reaction: StandardReaction | SyncCustomReaction) => {
+        onReactionSelect(reaction)
+        stateChange(false)
+    }
+
 
     return (
-        <Popover open={popOpened} onOpenChange={setPopOpened}>
+        <Popover open={popOpened} onOpenChange={stateChange}>
             <PopoverTrigger ref={triggerRef} asChild>
                 {children}
             </PopoverTrigger>
@@ -50,7 +63,7 @@ export function ReactionPickerPopover({showCustomReactions, onReactionSelect, ch
             ])} style={{ maxHeight: `max(calc(100dvh - ${triggerRect.top}px), calc(${triggerRect.bottom}px))` }}>
                 <DesktopReactionPicker
                     showCustomReactions={showCustomReactions}
-                    onReactionSelect={onReactionSelect}
+                    onReactionSelect={handleReactionSelect}
                 />
             </PopoverContent>
         </Popover>

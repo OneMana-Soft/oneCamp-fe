@@ -32,16 +32,36 @@ export type SyncCustomReaction = {
     name: string
     file_url: string
     created_at: string
+    native: string
 }
 
 export type GroupedReaction = {
     uid: string
-    emoji_id: string | null
+    emoji_id?: string
+    reaction_emoji_id: string
     emoji?: string | null
     tooltip? : string
     reactions_count?: number
     reaction_added_by: UserProfileDataInterface
     custom_content?: SyncCustomReaction | null
+}
+
+export interface CreateOrUpdatePostReaction {
+    reaction_emoji_id?: string
+    post_id?: string
+    reaction_dgraph_id?: string
+}
+
+export interface CreateOrUpdateChatReaction {
+    reaction_emoji_id?: string
+    chat_id?: string
+    reaction_dgraph_id?: string
+}
+
+export interface CreateOrUpdateCommentReaction {
+    reaction_emoji_id?: string
+    comment_id?: string
+    reaction_dgraph_id?: string
 }
 
 export interface SyncCustomReactionResp {

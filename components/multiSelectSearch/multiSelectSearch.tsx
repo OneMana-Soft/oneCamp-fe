@@ -134,7 +134,7 @@ export function MultiSelectSearch<T extends SearchableItem>({
                 onClick={() => inputRef.current?.focus()}
             >
                 {selectedItems.map((item) => (
-                    <Badge key={item.id} variant="secondary" className="rounded-md px-1 py-0 text-xs font-normal">
+                    <Badge key={item.id} variant="secondary" className="rounded-md px-1 py-0 text-lg font-normal">
                         {item.name}
                         <button
                             type="button"

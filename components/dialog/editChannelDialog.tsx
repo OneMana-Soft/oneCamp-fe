@@ -22,6 +22,8 @@ import {useEffect, useState} from "react";
 import {useFetch} from "@/hooks/useFetch";
 import {ChannelInfoInterfaceResp, ChannelNameExistsInterface} from "@/types/channel";
 import {isZeroEpoch} from "@/lib/utils/isZeroEpoch";
+import {useDispatch} from "react-redux";
+import {updateUserChannelName} from "@/store/slice/userSlice";
 
 const createChannelFormSchema = z.object({
     channel_name: z
@@ -51,6 +53,7 @@ const EditChannelDialog: React.FC<EditTeamDialogProps> = ({
     const channelInfo = useFetch<ChannelInfoInterfaceResp>(`${channelId ? GetEndpointUrl.ChannelBasicInfo+'/'+channelId : ''}`);
     const [originalChannelName, setOriginalChannelName] = useState(''); // Track original name
 
+    const dispatch = useDispatch()
     const {
         control,
         handleSubmit,
@@ -87,13 +90,18 @@ const EditChannelDialog: React.FC<EditTeamDialogProps> = ({
         channelNameToCheck ? `${GetEndpointUrl.CheckChannelNameAvailability}?ch_name=${channelNameToCheck}` : ''
     );
 
-    const onSubmit = async (data: UpdateChannelFormValues) => {
-        await makeRequest<UpdateChannelFormValues>({
+    const onSubmit =  (data: UpdateChannelFormValues) => {
+         makeRequest<UpdateChannelFormValues>({
             payload: data,
             apiEndpoint: PostEndpointUrl.UpdateChannel,
-        });
-        setChannelNameToCheck(null);
-        closeModal();
+            showToast: true
+        }).then(()=> {
+
+            dispatch(updateUserChannelName({channelUUID: data.channel_uuid, channelName: data.channel_name, channelPrivate: data.channel_private}));
+             setChannelNameToCheck(null);
+             closeModal();
+         });
+
     };
 
     const closeModal = () => {

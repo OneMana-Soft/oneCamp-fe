@@ -10,7 +10,7 @@ export const MobileTextInput = () => {
 
     const editorRef = useRef<HTMLDivElement>(null)
     const [isExpanded, setIsExpanded] = useState(false)
-    const [initialHeight, setInitialHeight] = useState(130 + 90) // Default height
+    const [initialHeight, setInitialHeight] = useState(126) // Default height
 
     useEffect(() => {
         if (!editorRef.current) return
@@ -41,6 +41,7 @@ export const MobileTextInput = () => {
                     ButtonIcon={SendHorizontal}
                     buttonOnclick={() => {
                     }}
+                    fixedToolbarToBottom={true}
                     editorClassName="focus:outline-none px-5 py-4"
                     onChange={() => {
                     }}

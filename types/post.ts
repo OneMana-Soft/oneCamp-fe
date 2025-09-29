@@ -6,7 +6,7 @@ import {ChannelInfoInterface} from "@/types/channel";
 import {ChatInfo} from "@/types/chat";
 
 export interface PostsRes {
-    post_uuid?: string
+    post_uuid: string
     post_text: string
     post_temp_id?: string
     post_attachments ?: AttachmentMediaReq[]
@@ -21,11 +21,11 @@ export interface PostsRes {
     post_fwd_msg_chat?: ChatInfo
 }
 
-export interface CreatePostsReq {
-
-    post_text_html: string
-    post_attachments: AttachmentMediaReq[]
-    channel_id: string
+export interface CreateOrUpdatePostsReq {
+    post_text_html?: string
+    post_attachments?: AttachmentMediaReq[]
+    channel_id?: string
+    post_id?: string
 }
 
 export interface CreatePostsRes {

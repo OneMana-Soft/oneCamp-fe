@@ -4,17 +4,22 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { useFetch } from "@/hooks/useFetch";
+import {useFetch, useFetchOnlyOnce} from "@/hooks/useFetch";
 import { UserProfileInterface } from "@/types/user";
 import {error_not_authorised_path} from "@/types/paths";
 import {GetEndpointUrl} from "@/services/endPoints";
+import {useDispatch} from "react-redux";
+import {updateUserConnectedDeviceCount, updateUserEmojiStatus, updateUserStatus} from "@/store/slice/userSlice";
 
 export function AppProtectedRoute({ children }: { children: React.ReactNode }) {
 
 
 
-    const userProfile = useFetch<UserProfileInterface>(GetEndpointUrl.SelfProfile);
+    const userProfile = useFetchOnlyOnce<UserProfileInterface>(GetEndpointUrl.SelfProfile);
     const router = useRouter();
+    const dispatch = useDispatch();
+
+
 
     useEffect(() => {
         if (userProfile.isError) {
@@ -22,6 +27,19 @@ export function AppProtectedRoute({ children }: { children: React.ReactNode }) {
         } else if (!userProfile.isLoading && !userProfile.data?.data) {
             router.push(error_not_authorised_path);
         }
+
+        if(userProfile.data?.data.user_emoji_statuses && userProfile.data?.data.user_emoji_statuses.length > 0) {
+            dispatch(updateUserEmojiStatus({userUUID: userProfile.data?.data.user_uuid, status:userProfile.data.data.user_emoji_statuses[0]}));
+        }
+
+        if(userProfile.data?.data.user_status) {
+            dispatch(updateUserStatus({userUUID: userProfile.data?.data.user_uuid, status:userProfile.data.data.user_status}));
+        }
+
+        if(userProfile.data?.data.user_device_connected) {
+            dispatch(updateUserConnectedDeviceCount({userUUID: userProfile.data?.data.user_uuid, deviceConnected:userProfile.data.data.user_device_connected || 0}));
+        }
+
     }, [userProfile.isError, userProfile.isLoading, userProfile.data, router]);
 
     if (userProfile.isLoading) {

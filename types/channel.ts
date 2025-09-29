@@ -9,9 +9,10 @@ export interface ChannelInfoInterface {
     ch_private: boolean,
     ch_is_user_fav: boolean,
     ch_about: string,
-    unread_post_count ?: number
+    unread_post_count : number
     ch_created_at: string
     ch_is_admin? : boolean
+    ch_is_member?: boolean
     ch_posts: PostsRes[]
     ch_created_by: UserProfileDataInterface,
     ch_handle: string,
@@ -28,12 +29,21 @@ export interface ChannelInfoInterfaceResp {
     msg: string,
 }
 
+export interface ChannelInfoListInterfaceResp {
+    channels_list: ChannelInfoInterface[],
+    msg: string,
+}
+
 export interface ChannelNameExistsInterface {
     exists: boolean;
 }
 
 export interface ChannelNotificationInterface {
     notification_type: string,
+    channel_id: string
+}
+
+export interface ChannelJoinInterface {
     channel_id: string
 }
 

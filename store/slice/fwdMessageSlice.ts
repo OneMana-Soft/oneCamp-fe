@@ -32,7 +32,8 @@ interface UpdatePreviewFilesUUID {
 export interface FwdMsgInputState {
     fwdMsgBody: string,
     filesUploaded: AttachmentMediaReq[],
-    filesPreview: FilePreview[]
+    filesPreview: FilePreview[],
+    mobileViewSendClicked: boolean
 }
 
 
@@ -41,6 +42,7 @@ const initialState: {fwdMsgInputInputState: FwdMsgInputState} = {
         fwdMsgBody: '',
         filesUploaded: [],
         filesPreview: [],
+        mobileViewSendClicked: false
     }
 }
 
@@ -53,7 +55,7 @@ export const fwdMsgSlice = createSlice({
             const { body } = action.payload;
 
             if (!state.fwdMsgInputInputState) {
-                state.fwdMsgInputInputState = { fwdMsgBody: '', filesUploaded: [] , filesPreview: [] };
+                state.fwdMsgInputInputState = { fwdMsgBody: '', filesUploaded: [] , filesPreview: [], mobileViewSendClicked: false};
             }
 
 
@@ -115,10 +117,13 @@ export const fwdMsgSlice = createSlice({
 
         clearFwdMsgInputState: (state) => {
 
-            state.fwdMsgInputInputState = { fwdMsgBody: '', filesUploaded: [] , filesPreview: [] };
+            state.fwdMsgInputInputState = { fwdMsgBody: '', filesUploaded: [] , filesPreview: [], mobileViewSendClicked: false};
 
         },
 
+        clickedMobileFwdMsgSend: (state) => {
+            state.fwdMsgInputInputState.mobileViewSendClicked = true;
+        },
     }
 })
 
@@ -131,7 +136,8 @@ export const {
     addFwdMsgUploadedFiles,
     removeFwdMsgUploadedFiles,
     clearFwdMsgInputState,
-    updateFwdMsgPreviewFilesUUID
+    updateFwdMsgPreviewFilesUUID,
+    clickedMobileFwdMsgSend,
 } = fwdMsgSlice.actions
 
 export default fwdMsgSlice;

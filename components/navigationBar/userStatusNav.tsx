@@ -2,26 +2,28 @@
 
 import addEmojiIconSrc from "@/assets/addEmoji.svg";
 import Image from 'next/image';
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {openUpdateUserStatusDialog} from "@/store/slice/dialogSlice";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {useFetch} from "@/hooks/useFetch";
-import {UserEmojiStatusResp, UserProfileInterface} from "@/types/user";
+import {UserEmojiStatus, UserEmojiStatusResp, UserProfileInterface} from "@/types/user";
 import {GetEndpointUrl} from "@/services/endPoints";
 import {useEmojiMartData} from "@/hooks/reactions/useEmojiMartData";
 import {findEmojiMartEmojiByEmojiID} from "@/lib/utils/reaction/findReaction";
 import {Button} from "@/components/ui/button";
+import {RootState} from "@/store/store";
+import {PostsRes} from "@/types/post";
 
-export function UserStatusNav() {
+export function UserStatusNav({userUUID}: {userUUID: string}) {
 
     const dispatch = useDispatch();
 
     const emojiData = useEmojiMartData()
 
-    const userActiveEmojiStatus = useFetch<UserEmojiStatusResp>(GetEndpointUrl.GetUserEmojiStatus)
-    const emojiInfo = findEmojiMartEmojiByEmojiID(emojiData.data, userActiveEmojiStatus.data?.data?.status_user_emoji_id ?? '')
+    const userStatusState = useSelector((state: RootState) => state.users.usersStatus[userUUID] || {} as UserEmojiStatus);
+    const emojiInfo = findEmojiMartEmojiByEmojiID(emojiData.data, userStatusState.emojiStatus?.status_user_emoji_id ?? '')
 
-    const statusMessage =  userActiveEmojiStatus.data?.data?.status_user_emoji_desc ?? null
+    const statusMessage =  userStatusState.emojiStatus?.status_user_emoji_desc ?? null
 
     return (
         <div className='flex'>

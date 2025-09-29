@@ -29,7 +29,6 @@ export const FwdToChatAndChannelFileUpload = ({channelUUIDs, chatUUIDs}: FwdToCh
 
     const handleFile = React.useCallback(
         async (e: React.ChangeEvent<HTMLInputElement>) => {
-            console.log("dsfgsdfgsdfgdfg 555555555555")
             e.preventDefault();
             const files = e.target.files;
             if (!files?.length) return;

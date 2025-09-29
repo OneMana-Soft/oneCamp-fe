@@ -2,12 +2,13 @@
 
 
 import {useMedia} from "@/context/MediaQueryContext";
+import {ChatUserList} from "@/components/chat/chatUserList";
 
 
 function ChatPage() {
 
 
-    const { isDesktop } = useMedia();
+    const { isDesktop, isMobile } = useMedia();
 
 
     return (
@@ -20,6 +21,12 @@ function ChatPage() {
                         Select a conversation
                     </div>
                 </div>
+            }
+
+            {
+                isMobile &&
+                <ChatUserList chatId={''}/>
+
             }
 
         </>

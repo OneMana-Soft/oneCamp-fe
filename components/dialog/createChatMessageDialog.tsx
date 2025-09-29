@@ -9,6 +9,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {ForwardMessageDropdown} from "@/components/searchDropdown/fwdMsgToDropdown/fwdMsgToDropdown";
+import MinimalTiptapTextInput from "@/components/textInput/textInput";
+import {cn} from "@/lib/utils/cn";
+import {createOrUpdateFwdMsg} from "@/store/slice/fwdMessageSlice";
+import {MessagePreview} from "@/components/message/MessagePreview";
+import {LoaderCircle} from "lucide-react";
+import * as React from "react";
+import {
+  SelectUserToMessageDropdown
+} from "@/components/searchDropdown/selectUserToMessageDropdown/selectUserToMessageDropdown";
+import {useState} from "react";
+import {UserProfileDataInterface} from "@/types/user";
+import {app_chat_path} from "@/types/paths";
+import {useRouter} from "next/navigation";
 
 
 interface updateUserStatusDialogProps {
@@ -21,43 +35,44 @@ const CreateChatMessageDialog: React.FC<updateUserStatusDialogProps> = ({
   setOpenState,
 }) => {
 
+  const router = useRouter();
 
+  const [selectedUser, setSelectedUser] = useState<UserProfileDataInterface| null>(null)
 
+  const handleSendMessage = () => {
+
+    router.push(app_chat_path + '/' + selectedUser?.user_uuid);
+    closeModal()
+
+  }
 
   function closeModal() {
     setOpenState(false);
   }
 
   return (
-    <Dialog onOpenChange={closeModal} open={dialogOpenState}>
-      {/*<DialogTrigger asChild>*/}
-      {/*    <Button variant="secondary">Save</Button>*/}
-      {/*</DialogTrigger>*/}
-      <DialogContent className="max-w-[95vw] md:max-w-[60vw]">
-        <DialogHeader>
-          <DialogTitle className='text-start'>Status</DialogTitle>
-          <DialogDescription className='hidden'>
-            update status
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
+      <Dialog open={dialogOpenState} onOpenChange={closeModal}  >
+        <DialogContent className="max-w-[95vw] md:max-w-[35vw] space-y-2.5">
+          <DialogHeader>
+            <DialogTitle>Find users</DialogTitle>
+            <DialogDescription >
+            </DialogDescription>
+          </DialogHeader>
+
+          <SelectUserToMessageDropdown onSelect={setSelectedUser}/>
+
+          <DialogFooter>
+            <Button onClick={handleSendMessage}
+                    disabled={selectedUser == null}
+            >
+
+              Send Message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
 
 
-              <div className="flex items-center space-x-4">
-                <p>Team:</p>
-                <p>asdasdsd</p>
-              </div>
-
-          </div>
-        </div>
-        <DialogFooter>
-          <Button onClick={()=>{}} >
-            update status
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
   );
 };
 

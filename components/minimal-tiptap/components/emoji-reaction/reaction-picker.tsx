@@ -6,24 +6,19 @@ import type { toggleVariants } from '@/components/ui/toggle'
 import { ToolbarButton } from '../toolbar-button'
 import {Smile} from "lucide-react";
 import {ReactionPicker} from "@/components/reactionPicker/reactionPicker";
-import {ReactionDataInterface, StandardReaction, SyncCustomReaction} from "@/types/reaction";
-import data from "@emoji-mart/data";
-import {SearchIndex, init } from "emoji-mart";
+import { StandardReaction, SyncCustomReaction} from "@/types/reaction";
+
 
 interface EmojiReactionPickerProps extends VariantProps<typeof toggleVariants> {
     editor: Editor
 }
 
 const EmojiReactionPicker = ({ editor, size, variant }: EmojiReactionPickerProps) => {
-    init({ data });
+
     const onReactionSelect = async (reaction: StandardReaction | SyncCustomReaction) => {
 
-        const emojis = await SearchIndex.search(reaction.id);
-        const emojiData = emojis?.find((emoji: ReactionDataInterface) => emoji.id === reaction.id);
-        if(emojiData){
-            console.log("sdfgsdfsdf 555555", emojiData)
-            editor.commands.insertContent(emojiData.skins[0].native);
-        }
+        editor.commands.insertContent(reaction.native);
+
     }
 
     return (

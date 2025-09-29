@@ -85,7 +85,7 @@ const DraggableDrawer: React.FC<DraggableDrawerProps> = ({
             initial={{ height: initialHeight }}
             className="fixed bottom-0 left-0 border-t right-0  rounded-t-3xl opacity-100 bg-gray-50 dark:bg-gray-900 top-shadow "
         >
-            <div className="w-full h-2">
+            <div className="w-full h-4">
                 <div className="mx-auto mt-4 h-1.5 w-[100px] rounded-full bg-gray-400"></div>
             </div>
             <div

@@ -5,11 +5,11 @@ interface preSelectedEmojiInterface {
 
 export const preSelectedEmojis: preSelectedEmojiInterface[] = [
     {
-        emojiId: 'party',
+        emojiId: 'confetti_ball',
         emojiString: '🎊'
     },
     {
-        emojiId: 'thumbs-up',
+        emojiId: '+1',
         emojiString: '👍'
     },
     {
@@ -21,7 +21,7 @@ export const preSelectedEmojis: preSelectedEmojiInterface[] = [
         emojiString: '😄'
     },
     {
-        emojiId: 'laugh',
+        emojiId: 'joy',
         emojiString: '😂'
     }
 ]

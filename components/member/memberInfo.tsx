@@ -5,7 +5,7 @@ import { Crown, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {UserProfileDataInterface} from "@/types/user";
 import {getNameInitials} from "@/lib/utils/getNameIntials";
-import {useFetch} from "@/hooks/useFetch";
+import {useFetch, useMediaFetch} from "@/hooks/useFetch";
 import {GetEndpointUrl} from "@/services/endPoints";
 import {GetMediaURLRes} from "@/types/file";
 
@@ -26,7 +26,7 @@ const MemberInfo: React.FC<MemberPropInfoInterface> = ({
                                                            handleMakeAdmin,
                                                            handleRemoveMember
                                                        }) => {
-    const profileImageRes = useFetch<GetMediaURLRes>(userInfo.user_profile_object_key ? GetEndpointUrl.PublicAttachmentURL+'/'+userInfo.user_profile_object_key : '');
+    const profileImageRes = useMediaFetch<GetMediaURLRes>(userInfo.user_profile_object_key ? GetEndpointUrl.PublicAttachmentURL+'/'+userInfo.user_profile_object_key : '');
     const nameInitial = getNameInitials(userInfo.user_name);
 
     const handleCrownClick = () => {

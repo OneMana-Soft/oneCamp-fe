@@ -196,6 +196,7 @@
 * {
   /*scrollbar-width: thin !important;*/
   scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+  font-feature-settings: "calt" 0;
 }
 
 /* Works on Chrome, Edge, and Safari */
@@ -256,6 +257,15 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.list-container {
+  position: relative;
+  overflow-y: auto;
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
 }
 
 

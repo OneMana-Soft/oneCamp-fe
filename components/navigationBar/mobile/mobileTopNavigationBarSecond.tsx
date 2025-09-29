@@ -4,6 +4,7 @@ import {usePathname} from "next/navigation";
 import {
     MobileTopNavigationBarSecondChannel,
 } from "@/components/navigationBar/mobile/mobileTopNavigationBarSecondChannel";
+import {MobileTopNavigationBarSecondChat} from "@/components/navigationBar/mobile/mobileTopNavigationBarSecondChat";
 
 export function MobileTopNavigationBarSecond() {
     const path = usePathname().split('/');
@@ -18,6 +19,8 @@ export function MobileTopNavigationBarSecond() {
                 return "Channels";
                 if(path.length < 5)
                     return <MobileTopNavigationBarSecondChannel channelUUID={path[3]}/>
+                if(path.length < 6)
+                    return "Thread"
                 break;
             case "task":
                 if(path.length < 4)
@@ -33,7 +36,16 @@ export function MobileTopNavigationBarSecond() {
                 return "Calls"
 
             case "chat":
+                if(path.length < 4)
                 return "Chat";
+                if(path.length < 5)
+                    return <MobileTopNavigationBarSecondChat chatUUID={path[3]}/>
+                if(path.length < 6)
+                    return "Thread"
+                break;
+
+            case "forward":
+                return "Forward message";
 
 
             default:

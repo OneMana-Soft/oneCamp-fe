@@ -12,15 +12,20 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {Button} from "@/components/ui/button";
+import {useFetchOnlyOnce} from "@/hooks/useFetch";
+import {UserProfileInterface} from "@/types/user";
+import {GetEndpointUrl} from "@/services/endPoints";
 
 export default function DesktopNavigationUserProfile() {
+
+    const selfProfile = useFetchOnlyOnce<UserProfileInterface>(GetEndpointUrl.SelfProfile)
 
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full focus-visible:ring-0 focus-visible:outline-none">
-                    <UserAvatarNav/>
+                    <UserAvatarNav userName={selfProfile.data?.data.user_name} userProfileObjKey={selfProfile.data?.data.user_profile_object_key} toolTipString={"Profile and settings"}/>
 
                 </Button>
             </DropdownMenuTrigger>

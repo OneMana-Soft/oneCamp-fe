@@ -38,7 +38,7 @@ export function CallListTabs() {
                 </div>
             </div>
 
-            <ChannelListTabContent/>
+            <ChannelListTabContent selectedTab={selectedTab}/>
 
         </div>
     )

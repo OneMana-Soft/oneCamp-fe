@@ -1,7 +1,7 @@
 "use client"
 
 
-import {Circle} from "lucide-react";
+import {Circle, Hash} from "lucide-react";
 import {ChannelListTabContent} from "@/components/channel/channelListTabContent";
 import {useState} from "react";
 import {useMedia} from "@/context/MediaQueryContext";
@@ -17,16 +17,13 @@ export function ChannelListTabs() {
     const {isDesktop} = useMedia()
 
     return (
-        <div className='flex flex-col'>
+        <div className='flex flex-col h-full'>
 
+            <div>
             <div
                 className='h-10 md:h-16 text-sm  flex w-full md:w-[20vw]   justify-around items-center p-1.5 space-x-3 md:p-4 md:ml-2'>
-                {isDesktop && <div className='flex space-x-3 justify-center items-center mr-6'>
-                    <div className='relative'>
-                        <Circle className='absolute top-[-6] left-[-4] text-xs'
-                                style={{width: `${17}px`, height: `${17}px`}}/>
-                        <Circle className='' style={{width: `${17}px`, height: `${17}px`}}/>
-                    </div>
+                {isDesktop && <div className='flex space-x-1 justify-center items-center mr-6'>
+                    <div><Hash className='h-5 w-5 text-muted-foreground'/></div>
                     <div className="text-base">Channels</div>
                 </div>}
 
@@ -39,8 +36,9 @@ export function ChannelListTabs() {
                     Archived
                 </div>
             </div>
+            </div>
 
-            <ChannelListTabContent/>
+            <ChannelListTabContent selectedTab={selectedTab}/>
         </div>
     )
 }

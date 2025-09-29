@@ -4,8 +4,18 @@ import {OrgDrawer} from "@/components/drawers/orgDrawer";
 import {
     closeChannelMessageLongPressDrawer,
     closeChannelOptionsDrawer,
-    closeDocFilterOptionsDrawer, closeDocOptionsDrawer, closeMyTaskOptionsDrawer,
-    closeOrgDrawer, closeReactionPickerDrawer, closeTaskFilterDrawer, closeTaskOptionsDrawer,
+    closeChatMessageLongPressDrawer,
+    closeDmChatCommentMessageLongPressDrawer,
+    closeDmChatMessageLongPressDrawer,
+    closeDocFilterOptionsDrawer,
+    closeDocOptionsDrawer,
+    closeMyTaskOptionsDrawer,
+    closeOrgDrawer,
+    closePostCommentMessageLongPressDrawer,
+    closePostMessageLongPressDrawer,
+    closeReactionPickerDrawer,
+    closeTaskFilterDrawer,
+    closeTaskOptionsDrawer,
     closeUserProfileDrawer
 } from "@/store/slice/drawerSlice";
 import {UserProfileDrawer} from "@/components/drawers/userProfileDrawer";
@@ -21,6 +31,11 @@ import {TaskFilterDrawer} from "@/components/drawers/taskFilterDrawer";
 import {TaskOptionsDrawer} from "@/components/drawers/taskOptionsDrawer";
 import {MyTaskOptionsDrawer} from "@/components/drawers/myTaskOptionsDrawer";
 import {ChannelMessageLongPressDrawer} from "@/components/drawers/channelMessageLongPressDrawer";
+import {PostCommentMessageLongPressDrawer} from "@/components/drawers/postCommentMessageLongPressDrawer";
+import {ChatMessageLongPressDrawer} from "@/components/drawers/chatMessageLongPressDrawer";
+import {DmChatMessageLongPressDrawer} from "@/components/drawers/dmChatMessageLongPressDrawer";
+import {DmChatCommentMessageLongPressDrawer} from "@/components/drawers/dmChatCommentMessageLongPressDrawer";
+import {PostMessageLongPressDrawer} from "@/components/drawers/postMessageLongPressDrawer";
 
 export function MobileNavigationBar({
                                               children,
@@ -104,7 +119,80 @@ export function MobileNavigationBar({
                 drawerOpenState={drawerState.channelMessageLongPressDrawer.isOpen}
                 setOpenState={()=>dispatch(closeChannelMessageLongPressDrawer())}
                 onAddEmoji={drawerState.channelMessageLongPressDrawer.data.onAddReaction}
+                channelUUID={drawerState.channelMessageLongPressDrawer.data.channelUUID}
+                postUUID={drawerState.channelMessageLongPressDrawer.data.postUUID}
+                editMessage={drawerState.channelMessageLongPressDrawer.data.editMessage}
+                deleteMessage={drawerState.channelMessageLongPressDrawer.data.deleteMessage}
+                isAdmin={drawerState.channelMessageLongPressDrawer.data.isAdmin}
+                isOwner={drawerState.channelMessageLongPressDrawer.data.isOwner}
+                handleEmojiClick={drawerState.channelMessageLongPressDrawer.data.handleEmojiClick}
+                copyTextToClipboard={drawerState.channelMessageLongPressDrawer.data.copyTextToClipboard}
             />
+
+            <ChatMessageLongPressDrawer
+                drawerOpenState={drawerState.chatMessageLongPressDrawer.isOpen}
+                setOpenState={()=>dispatch(closeChatMessageLongPressDrawer())}
+                onAddEmoji={drawerState.chatMessageLongPressDrawer.data.onAddReaction}
+                otherUserUUID={drawerState.chatMessageLongPressDrawer.data.otherUserUUID}
+                chatUUID={drawerState.chatMessageLongPressDrawer.data.chatUUID}
+                editMessage={drawerState.chatMessageLongPressDrawer.data.editMessage}
+                deleteMessage={drawerState.chatMessageLongPressDrawer.data.deleteMessage}
+                isAdmin={drawerState.chatMessageLongPressDrawer.data.isAdmin}
+                isOwner={drawerState.chatMessageLongPressDrawer.data.isOwner}
+                handleEmojiClick={drawerState.chatMessageLongPressDrawer.data.handleEmojiClick}
+                copyTextToClipboard={drawerState.chatMessageLongPressDrawer.data.copyTextToClipboard}
+            />
+
+            <PostMessageLongPressDrawer
+                drawerOpenState={drawerState.postMessageLongPressDrawer.isOpen}
+                setOpenState={()=>dispatch(closePostMessageLongPressDrawer())}
+                onAddEmoji={drawerState.postMessageLongPressDrawer.data.onAddReaction}
+                channelUUID={drawerState.postMessageLongPressDrawer.data.channelUUID}
+                postUUID={drawerState.postMessageLongPressDrawer.data.postUUID}
+                copyTextToClipboard={drawerState.postMessageLongPressDrawer.data.copyTextToClipboard}
+                deleteMessage={drawerState.postMessageLongPressDrawer.data.deleteMessage}
+                editMessage={drawerState.postMessageLongPressDrawer.data.editMessage}
+                handleEmojiClick={drawerState.postMessageLongPressDrawer.data.handleEmojiClick}
+                isOwner={drawerState.postMessageLongPressDrawer.data.isOwner}
+                isAdmin={drawerState.postMessageLongPressDrawer.data.isAdmin}
+            />
+
+            <DmChatMessageLongPressDrawer
+                drawerOpenState={drawerState.dmChatMessageLongPressDrawer.isOpen}
+                setOpenState={()=>dispatch(closeDmChatMessageLongPressDrawer())}
+                onAddEmoji={drawerState.dmChatMessageLongPressDrawer.data.onAddReaction}
+                otherUserUUID={drawerState.dmChatMessageLongPressDrawer.data.chatUUID}
+                chatUUID={drawerState.dmChatMessageLongPressDrawer.data.chatMessageUUID}
+                copyTextToClipboard={drawerState.dmChatMessageLongPressDrawer.data.copyTextToClipboard}
+                deleteMessage={drawerState.dmChatMessageLongPressDrawer.data.deleteMessage}
+                editMessage={drawerState.dmChatMessageLongPressDrawer.data.editMessage}
+                handleEmojiClick={drawerState.dmChatMessageLongPressDrawer.data.handleEmojiClick}
+                isOwner={drawerState.dmChatMessageLongPressDrawer.data.isOwner}
+                isAdmin={drawerState.dmChatMessageLongPressDrawer.data.isAdmin}
+            />
+
+            <PostCommentMessageLongPressDrawer
+                drawerOpenState={drawerState.postCommentMessageLongPressDrawer.isOpen}
+                setOpenState={()=>dispatch(closePostCommentMessageLongPressDrawer())}
+                onAddEmoji={drawerState.postCommentMessageLongPressDrawer.data.onAddReaction}
+                copyTextToClipboard={drawerState.postCommentMessageLongPressDrawer.data.copyTextToClipboard}
+                editMessage={drawerState.postCommentMessageLongPressDrawer.data.editMessage}
+                deleteMessage={drawerState.postCommentMessageLongPressDrawer.data.deleteMessage}
+                handleEmojiClick={drawerState.postCommentMessageLongPressDrawer.data.handleEmojiClick}
+                isOwner={drawerState.postCommentMessageLongPressDrawer.data.isOwner}
+                isAdmin={drawerState.postCommentMessageLongPressDrawer.data.isAdmin}
+            />
+
+            <DmChatCommentMessageLongPressDrawer
+                drawerOpenState={drawerState.dmChatCommentMessageLongPressDrawer.isOpen}
+                setOpenState={()=>dispatch(closeDmChatCommentMessageLongPressDrawer())}
+                onAddEmoji={drawerState.dmChatCommentMessageLongPressDrawer.data.onAddReaction}
+                copyTextToClipboard={drawerState.dmChatCommentMessageLongPressDrawer.data.copyTextToClipboard}
+                deleteMessage={drawerState.dmChatCommentMessageLongPressDrawer.data.deleteMessage}
+                editMessage={drawerState.dmChatCommentMessageLongPressDrawer.data.editMessage}
+                handleEmojiClick={drawerState.dmChatCommentMessageLongPressDrawer.data.handleEmojiClick}
+            />
+
         </>
 
     );

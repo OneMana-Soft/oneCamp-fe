@@ -1,33 +1,87 @@
 "use client"
 
 import {MobileHomeSearchBar} from "@/components/home/mobile/mobileHomeSearchBar";
-import {ClipboardList, FileIcon, FileText, Hash, Users, Video} from "lucide-react";
+import {ClipboardList, FileIcon, FileText, Hash, MessageCircle, Users, Video} from "lucide-react";
 import {DesktopChildrenNavType, DesktopNavType} from "@/types/nav";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {DesktopSideNavigationBar} from "@/components/navigationBar/desktop/desktopSideNavigationBar";
 import {Separator} from "@/components/ui/separator";
-import {app_channel_path, app_project_path, app_project_team} from "@/types/paths";
+import {app_channel_path, app_chat_path, app_project_path, app_project_team} from "@/types/paths";
 import {useFetch} from "@/hooks/useFetch";
-import {UserProfileInterface} from "@/types/user";
-import {useDispatch} from "react-redux";
-import {openCreateChannelDialog, openCreateProjectDialog, openCreateTeamDialog} from "@/store/slice/dialogSlice";
+import {UserProfileDataInterface, UserProfileInterface} from "@/types/user";
+import {useDispatch, useSelector} from "react-redux";
+import {
+    openCreateChannelDialog,
+    openCreateChatMessageDialog,
+    openCreateProjectDialog,
+    openCreateTeamDialog
+} from "@/store/slice/dialogSlice";
 import {GetEndpointUrl} from "@/services/endPoints";
+import {
+    createUserChannelList,
+    createUserChatList,
+    createUserProjectList,
+    createUserTeamList, updateUsersStatusFromList
+} from "@/store/slice/userSlice";
+import type {RootState} from "@/store/store";
 
 export function MobileHome() {
 
     const dispatch = useDispatch();
 
-    const [isProjectOpen, setIsProjectOpen] = useState(true);
-    const [isTeamOpen, setIsTeamOpen] = useState(true);
-    const [isChannelOpen, setIsChannelOpen] = useState(true);
+    const [isProjectOpen, setIsProjectOpen] = useState(false);
+    const [isTeamOpen, setIsTeamOpen] = useState(false);
+    const [isChannelOpen, setIsChannelOpen] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const projectNavGrp = [] as DesktopChildrenNavType[]
     const teamNavGrp = [] as DesktopChildrenNavType[]
     const channelNavGrp = [] as DesktopChildrenNavType[]
+    const dmNavGrp = [] as DesktopChildrenNavType[]
+
 
     const userSideNav = useFetch<UserProfileInterface>(GetEndpointUrl.SelfProfileSideNav)
+    const userSidebarState = useSelector((state: RootState) => state.users.userSidebar)
 
-    for (const p of userSideNav.data?.data.user_projects||[]) {
+
+    useEffect(() => {
+        if(userSideNav.data?.data.user_teams) {
+            dispatch(createUserTeamList({teamUsers: userSideNav.data?.data.user_teams}))
+        }
+
+        if(userSideNav.data?.data.user_projects) {
+            dispatch(createUserProjectList({projectUsers: userSideNav.data?.data.user_projects}))
+        }
+
+        if(userSideNav.data?.data.user_channels) {
+            dispatch(createUserChannelList({channelsUser: userSideNav.data?.data.user_channels}))
+        }
+
+        if(userSideNav.data?.data.user_dms) {
+            const otherUsersList = userSideNav.data.data.user_dms.reduce<UserProfileDataInterface[]>((acc, dm) => {
+                const originalUser = dm.dm_chats?.[0]?.chat_to || dm.dm_chats?.[0]?.chat_from || userSideNav.data?.data || {} as UserProfileDataInterface;
+
+                // Create a new object instead of mutating the original
+                const otherUser = {
+                    ...originalUser,
+                    user_dms: [JSON.parse(JSON.stringify(dm))]
+                };
+
+                return [...acc, otherUser];
+            }, []);
+
+
+            dispatch(createUserChatList({chatUsers: otherUsersList}))
+
+            console.log("dsasdfs sadd", otherUsersList)
+
+            dispatch(updateUsersStatusFromList({users: otherUsersList}))
+
+        }
+
+    }, [userSideNav.data?.data]);
+
+    for (const p of userSidebarState.userProjects||[]) {
         // variant: path[2] && path[2]==p.project_uuid? "default" : "ghost",
         projectNavGrp.push({
             title: p.project_name,
@@ -36,7 +90,7 @@ export function MobileHome() {
         })
     }
 
-    for (const t of userSideNav.data?.data.user_teams||[]) {
+    for (const t of userSidebarState.userTeams||[]) {
         // variant: path[2] && path[2]==p.project_uuid? "default" : "ghost",
         teamNavGrp.push({
             title: t.team_name,
@@ -45,12 +99,22 @@ export function MobileHome() {
         })
     }
 
-    for (const c of userSideNav.data?.data.user_channels||[]) {
+    for (const c of userSidebarState.userChannels||[]) {
         // variant: path[2] && path[2]==p.project_uuid? "default" : "ghost",
         channelNavGrp.push({
             title: c.ch_name,
             path: `${app_channel_path}/${c.ch_uuid}`,
             variant: "ghost"
+        })
+    }
+
+    for (const d of userSidebarState.userChats||[]) {
+        // variant: path[2] && path[2]==p.project_uuid? "default" : "ghost",
+        dmNavGrp.push({
+            title: d.user_name,
+            userProfile: d,
+            path: `${app_chat_path}/${d.user_uuid}`,
+            variant: "ghost",
         })
     }
 
@@ -98,6 +162,21 @@ export function MobileHome() {
         },
     ];
 
+    const secondaryNavLinks4:DesktopNavType[] = [
+
+        {
+            title: 'chats',
+            label: "342",
+            icon: MessageCircle,
+            variant: "ghost",
+            path: "#",
+            action: ()=>{dispatch(openCreateChatMessageDialog())},
+            isOpen: isChatOpen,
+            setIsOpen: setIsChatOpen,
+            children: dmNavGrp
+        },
+    ];
+
     return (
         <div className='flex flex-col space-y-4 justify-center mt-6 pl-4 pr-4'>
             <MobileHomeSearchBar/>
@@ -126,6 +205,8 @@ export function MobileHome() {
                 <DesktopSideNavigationBar isCollapsed={false} links={secondaryNavLinks2} />
                 <Separator />
                 <DesktopSideNavigationBar isCollapsed={false} links={secondaryNavLinks3} />
+                <Separator />
+                <DesktopSideNavigationBar isCollapsed={false} links={secondaryNavLinks4} />
                 <Separator />
 
 

@@ -10,52 +10,99 @@ import {
     DrawerHeader,
     DrawerTitle,
 } from "@/components/ui/drawer"
-import { useDispatch } from "react-redux"
-import {
-    openUpdateChannelDialog,
-    openUpdateChannelMemberDialog,
-    openUpdateUserStatusDialog
-} from "@/store/slice/dialogSlice"
+
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import addEmojiIconSrc from "@/assets/addEmoji.svg"
-import { Card, CardContent } from "@/components/ui/card"
 import {Separator} from "@/components/ui/separator";
 import {preSelectedEmojis} from "@/components/drawers/consts/preSelectedEmojiConst";
 import {DrawerActionCard} from "@/components/drawerActionCard/drawerActionCard";
 import {DrawerActionLink} from "@/components/drawerActionLink/drawerActionLink";
 import {DrawerDestructiveActionLink} from "@/components/drawerActionLink/drawerDestructiveActionLink";
+import {app_channel_path, app_home_path, app_message_forward_path} from "@/types/paths";
+import {useRouter} from "next/navigation";
+import {useCopyToClipboard} from "@/hooks/useCopyToClipboard";
 
 interface channelOptionsDrawerProps {
     drawerOpenState: boolean
     setOpenState: (state: boolean) => void
     onAddEmoji: () => void
+    postUUID: string
+    channelUUID: string
+    copyTextToClipboard: () => void
+    editMessage: () => void
+    deleteMessage: () => void
+    handleEmojiClick: (emojiId: string) => void
+    isOwner: boolean
+    isAdmin?: boolean
 }
 
 
 
-export function ChannelMessageLongPressDrawer({ drawerOpenState, setOpenState, onAddEmoji }: channelOptionsDrawerProps) {
-    const dispatch = useDispatch()
+export function ChannelMessageLongPressDrawer({ drawerOpenState, copyTextToClipboard, setOpenState, onAddEmoji, postUUID, channelUUID, editMessage, deleteMessage, isAdmin, isOwner, handleEmojiClick }: channelOptionsDrawerProps) {
+
+    const router = useRouter();
+
+    const copyToClipboard = useCopyToClipboard()
 
     function closeDrawer() {
+
+        // setTimeout(() => {
+        //     setOpenState(false)
+        // }, 500);
+
         setOpenState(false)
+
+
     }
 
     // Handlers for card clicks
     const handleReplyClick = () => {
-        console.log("Reply clicked")
-        // Add your reply logic here
+
+        router.push(`${app_channel_path}/${channelUUID}/${postUUID}`);
+        closeDrawer()
+    }
+
+    const handleCopyLink = () => {
+        const host = window.location.host;
+        const protocol = window.location.protocol;
+        const baseUrl = `${protocol}//${host}`;
+        const newPath = `${app_channel_path}/${channelUUID}/${postUUID}`
+
+        copyToClipboard.copy(`${baseUrl}${newPath}`, 'copied link')
+
+        closeDrawer()
     }
 
     const handleForwardClick = () => {
-        console.log("Forward clicked")
-        // Add your forward logic here
+        router.push(`${app_message_forward_path}/${channelUUID}/${postUUID}`);
+        closeDrawer()
     }
 
-    const handleSaveClick = () => {
-        console.log("Save clicked")
-        // Add your save logic here
+
+    const handleDeleteClick = () => {
+        setTimeout(() => {
+            deleteMessage()
+        }, 100);
+
+        closeDrawer()
     }
+
+    const handleEditClick = () => {
+        editMessage()
+        closeDrawer()
+    }
+
+    const handleCopyClick = () => {
+        copyTextToClipboard()
+        closeDrawer()
+    }
+
+    const emojiClick = (emojiId: string) => {
+        handleEmojiClick(emojiId)
+        closeDrawer()
+    }
+
 
     return (
         <Drawer onOpenChange={closeDrawer} open={drawerOpenState}>
@@ -74,7 +121,7 @@ export function ChannelMessageLongPressDrawer({ drawerOpenState, setOpenState, o
                                 preSelectedEmojis.map(( e) => {
                                     return (
 
-                                        <Button variant="secondary" size="icon" className="rounded-full" key={e.emojiId}>
+                                        <Button variant="secondary" size="icon" className="rounded-full" key={e.emojiId} onClick={()=>{emojiClick(e.emojiId)}}>
                                             {e.emojiString}
                                         </Button>
                                     )
@@ -97,7 +144,7 @@ export function ChannelMessageLongPressDrawer({ drawerOpenState, setOpenState, o
                         </div>
 
                         {/* Cards Section */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex justify-center gap-8 ">
 
                             <DrawerActionCard
                                 onCardClick={handleReplyClick}
@@ -111,54 +158,47 @@ export function ChannelMessageLongPressDrawer({ drawerOpenState, setOpenState, o
                                 cardText={'Forward'}
                             />
 
-                            <DrawerActionCard
-                                onCardClick={handleSaveClick}
-                                Icon={Bookmark}
-                                cardText={'Save'}
-                            />
 
                         </div>
 
                         <div className="flex flex-col items-center justify-start  pt-2">
 
-                            <DrawerActionLink
-                                onLinkClick={()=>{}}
-                                linkText={'Get reply notification'}
-                                Icon={Bell}
-                             />
+                            {isOwner && <DrawerActionLink
+                                onLinkClick={handleEditClick}
+                                linkText={'Edit message'}
+                                Icon={Pencil}
+                            />}
+
 
                             <DrawerActionLink
-                                onLinkClick={()=>{}}
+                                onLinkClick={handleCopyLink}
                                 linkText={'Copy link to message'}
                                 Icon={Link}
                             />
 
                             <DrawerActionLink
-                                onLinkClick={()=>{}}
+                                onLinkClick={handleCopyClick}
                                 linkText={'Copy all text'}
                                 Icon={Type}
                             />
 
 
-                            <DrawerActionLink
-                                onLinkClick={()=>{}}
-                                linkText={'Edit message'}
-                                Icon={Pencil}
-                            />
 
                         </div>
 
-                        <Separator orientation="horizontal" className='absolute w-full left-0'/>
+                        { (isOwner || isAdmin) &&
+                            <><Separator orientation="horizontal" className='absolute w-full left-0'/>
 
                         <div className="flex flex-col items-center justify-start  pt-2">
 
                             <DrawerDestructiveActionLink
-                                onLinkClick={()=>{}}
+                                onLinkClick={handleDeleteClick}
                                 linkText={'Delete message'}
                                 Icon={Trash2}
                             />
 
-                        </div>
+                        </div></>
+                        }
 
 
                     </div>

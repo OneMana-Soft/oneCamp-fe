@@ -6,7 +6,7 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} fro
 import { Button } from "@/components/ui/button"
 import { X, ChevronLeft, ChevronRight, Download, FileIcon } from "lucide-react"
 import {AttachmentDocument, AttachmentMediaReq, AttachmentType} from "@/types/attachment";
-import {useFetch} from "@/hooks/useFetch";
+import {useFetch, useMediaFetch} from "@/hooks/useFetch";
 import {GetMediaURLRes} from "@/types/file";
 import {formatFileSizeForAttachment} from "@/lib/utils/formatFileSizeForAttachment";
 import {formatDateForAttachment} from "@/lib/utils/formatDateforAttachment";
@@ -25,10 +25,10 @@ interface MediaLightboxProps {
 
 export function MediaLightboxDialog({ media, dialogOpenState, allMedia, mediaGetUrl, setOpenState}: MediaLightboxProps) {
     const [currentMedia, setCurrentMedia] = useState<AttachmentMediaReq>({} as AttachmentMediaReq)
-    const mediaReq = useFetch<GetMediaURLRes>(currentMedia?.attachment_uuid ? mediaGetUrl +'/'+currentMedia.attachment_uuid : '')
+    const mediaReq = useMediaFetch<GetMediaURLRes>(currentMedia?.attachment_uuid ? mediaGetUrl +'/'+currentMedia.attachment_uuid : '')
 
     const currentIndex = allMedia?.findIndex((m) => m.attachment_uuid === currentMedia?.attachment_uuid) || 0
-    const { isMobile } = useMedia();
+    const { isMobile, isDesktop } = useMedia();
 
 
     useEffect(() => {
@@ -41,14 +41,19 @@ export function MediaLightboxDialog({ media, dialogOpenState, allMedia, mediaGet
     }, [media]);
     // Handle keyboard navigation
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "ArrowLeft") handlePrevious()
-            if (e.key === "ArrowRight") handleNext()
-            if (e.key === "Escape") closeModal()
+
+        if(isDesktop) {
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if(!dialogOpenState) return
+                if (e.key === "ArrowLeft") handlePrevious()
+                if (e.key === "ArrowRight") handleNext()
+                if (e.key === "Escape") closeModal()
+            }
+
+            window.addEventListener("keydown", handleKeyDown)
+            return () => window.removeEventListener("keydown", handleKeyDown)
         }
 
-        window.addEventListener("keydown", handleKeyDown)
-        return () => window.removeEventListener("keydown", handleKeyDown)
     }, [currentIndex])
 
 

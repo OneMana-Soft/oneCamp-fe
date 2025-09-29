@@ -12,11 +12,11 @@ import {
 import * as React from "react";
 import {ReactionPicker} from "@/components/reactionPicker/reactionPicker";
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {useFetch} from "@/hooks/useFetch";
+import {useFetch, useFetchOnlyOnce} from "@/hooks/useFetch";
 import {
   StatusTime,
   UpdateUserEmojiStatusReq,
-  UserEmojiStatus, UserEmojiStatusResp,
+  UserEmojiStatus, UserEmojiStatusResp, UserProfileInterface,
   UserStatusRespInterface
 } from "@/types/user";
 import { uniqueBy } from 'remeda'
@@ -40,6 +40,9 @@ import {X} from "lucide-react";
 import {useEmojiMartData} from "@/hooks/reactions/useEmojiMartData";
 import {findEmojiMartEmojiByEmojiID} from "@/lib/utils/reaction/findReaction";
 import {usePost} from "@/hooks/usePost";
+import {updateUserEmojiStatus} from "@/store/slice/userSlice";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "@/store/store";
 
 
 const DEFAULT_STATUSES: UserEmojiStatus[] = [
@@ -92,13 +95,15 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
   }
 
   const post = usePost()
+  const selfProfile = useFetchOnlyOnce<UserProfileInterface>(GetEndpointUrl.SelfProfile)
 
-  const userActiveEmojiStatus = useFetch<UserEmojiStatusResp>(GetEndpointUrl.GetUserEmojiStatus)
-  const memberStatus = userActiveEmojiStatus.data?.data ?? null;
+  const dispatch = useDispatch()
+  const userStatusState = useSelector((state: RootState) => state.users.usersStatus[selfProfile.data?.data.user_uuid||''] || {} as UserEmojiStatus);
+  const memberStatus = userStatusState.emojiStatus?.status_user_emoji_id ? userStatusState.emojiStatus : null;
 
   const memberStatusIsExpired = useStatusIsExpired(memberStatus)
   const recentStatusesResp = useFetch<UserStatusRespInterface>(GetEndpointUrl.GetUserStatuses)
-  const currentStatus = memberStatusIsExpired ? null : memberStatus
+  const currentStatus = memberStatusIsExpired ? undefined : memberStatus
 
   const [emoji, setEmoji] = useState( defaultState.emoji)
   const [message, setMessage] = useState(defaultState.message)
@@ -115,7 +120,6 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
 
     if(memberStatus) {
       findEmojiMartEmojiByEmojiID(emojiData.data, currentStatus?.status_user_emoji_id ?? defaultState.emoji)
-
       setEmoji(currentStatus?.status_user_emoji_id ??defaultState.emoji)
       setMessage(currentStatus?.status_user_emoji_desc ?? defaultState.message)
       setExpiresIn(currentStatus?.status_user_emoji_expiry_in ?? defaultState.expiration_setting)
@@ -123,19 +127,28 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
     }
 
 
-  },[memberStatus])
+  },[memberStatus?.status_user_emoji_id])
 
   const hasStatus = Boolean(currentStatus)
 
   const { isMobile } = useMedia()
 
   const suggestedStatuses = useMemo(() => {
+
     const presets = [
       ...(recentStatusesResp.data?.data?.filter((status) => status.status_user_emoji_expiry_in !== 'custom') ?? []),
       ...DEFAULT_STATUSES
     ]
 
-    return uniqueBy(presets, (preset) => preset)
+    const filteredStatuses = Array.from(
+        new Map(
+            presets.map((status: UserEmojiStatus) => [
+              `${status.status_user_emoji_id}|${status.status_user_emoji_desc}`,
+              status,
+            ])
+        ).values());
+
+    return uniqueBy(filteredStatuses, (filteredStatuses) => filteredStatuses)
         .slice(0, 5)
         .reverse()
   }, [recentStatusesResp.data])
@@ -150,7 +163,13 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
           emoji_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
         }})
           .then(()=>{
-            userActiveEmojiStatus.mutate()
+            dispatch(updateUserEmojiStatus({userUUID: selfProfile.data?.data.user_uuid || '', status: {
+                status_user_emoji_expiry_in: expiresIn || undefined,
+                status_user_emoji_desc: message,
+                status_user_emoji_expiry_at: (expiresAt ? Math.floor(expiresAt.getTime() / 1000).toString() : ""),
+                status_user_emoji_id: emoji
+
+              }}));
             closeModal()
           })
   }
@@ -164,7 +183,7 @@ const UpdateUserStatusDialog: React.FC<updateUserStatusDialogProps> = ({
           setMessage(defaultState.message)
           setExpiresIn(defaultState.expiration_setting)
           setExpiresAt(defaultState.expires_at)
-          userActiveEmojiStatus.mutate()
+          dispatch(updateUserEmojiStatus({userUUID: selfProfile.data?.data.user_uuid || '', status: {} as UserEmojiStatus}));
         })
   }
 

@@ -2,6 +2,7 @@
 
 import {AppProtectedRoute} from "@/components/protectedRoute/appProtectedRoute";
 import {
+    closeConfirmAlertMessageDialog,
     closeCreateChannelDialog,
     closeCreateChatMessageDialog,
     closeCreateProjectDialog,
@@ -24,15 +25,13 @@ import CreateTeamDialog from "@/components/dialog/createTeamDialog";
 import {Toaster} from "@/components/ui/toaster";
 import {ResizableHandle, ResizablePanel, ResizablePanelGroup} from "@/components/ui/resizable";
 import {cn} from "@/lib/utils/cn";
-import MinimalTiptapTextInput from "@/components/textInput/textInput";
-import {ArrowRightToLine, ChevronLeft, ChevronRight, SendHorizontal} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {toggleRightPanel} from "@/store/slice/rightPanelSlice";
 import EditChannelDialog from "@/components/dialog/editChannelDialog";
 import EditChannelMemberDialog from "@/components/dialog/editChannelMembers";
 import {MediaLightboxDialog} from "@/components/dialog/attachmentLightboxDialog";
-import {AttachmentMediaReq} from "@/types/attachment";
 import {ForwardMessage} from "@/components/dialog/forwardMessage";
+import {RightPanel} from "@/components/rightPanel/rightPanel";
+import {ConfirmAlertDialog} from "@/components/dialog/confirmAlertDialog";
+import {MqttProvider} from "@/components/mqtt/mqttProvider";
 
 export default function AppLayout({
                                        children,
@@ -50,6 +49,7 @@ export default function AppLayout({
     return (
         <AppProtectedRoute>
             <TooltipProvider delayDuration={400}>
+                <MqttProvider>
                 {isMobile ?
                     (
                         <MobileNavigationBar>
@@ -66,7 +66,7 @@ export default function AppLayout({
                                 }}
                                 className="h-full"
                             >
-                                <ResizablePanel defaultSize={60} className={cn("h-full")}>
+                                <ResizablePanel defaultSize={60} className={cn("h-full relative")}>
                                     {children}
                                 </ResizablePanel>
                                 <ResizableHandle withHandle={ rightPanelState.isOpen}/>
@@ -78,20 +78,14 @@ export default function AppLayout({
                                         rightPanelState.isOpen ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
                                     }`}
                                     style={{
-                                        width:  rightPanelState.isOpen ? "30%" : "0%",
-                                        minWidth:  rightPanelState.isOpen ? "30%" : "0%",
+                                        width:  rightPanelState.isOpen ? "10%" : "0%",
+                                        minWidth:  rightPanelState.isOpen ? "10%" : "0%",
                                         maxWidth:  rightPanelState.isOpen ? "60%" : "0%",
                                     }}
                                 >
                                     {/* Content for the right panel */}
-                                    <div className="p-4">
-                                        <div className='flex justify-between'>
-                                            <h2 className="text-2xl font-bold mb-4">Right Panel Content</h2>
-                                            <Button size='icon' variant='ghost' onClick={()=>{dispatch(toggleRightPanel())}}><ArrowRightToLine /></Button>
 
-                                        </div>
-                                        <p>This is the sliding right panel. You can add any content here.</p>
-                                    </div>
+                                        <RightPanel />
                                 </ResizablePanel>
                             </ResizablePanelGroup>
 
@@ -155,7 +149,16 @@ export default function AppLayout({
                     open={dialogState.forwardMessageDialog.isOpen}
                 />
 
+                <ConfirmAlertDialog
+                    title={dialogState.confirmAlertDialog.data.title}
+                    description={dialogState.confirmAlertDialog.data.description}
+                    onConfirm={dialogState.confirmAlertDialog.data.onConfirm}
+                    open={dialogState.confirmAlertDialog.isOpen}
+                    onOpenChange={() => dispatch(closeConfirmAlertMessageDialog())}
+                />
+
                 <Toaster />
+                </MqttProvider>
 
             </TooltipProvider>
 

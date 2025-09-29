@@ -75,6 +75,27 @@ const endpointMessages: Record< PostEndpointUrl, { success: string; error: strin
         success: "Updated status successfully.",
         error: "Failed to update status.",
     },
+    [PostEndpointUrl.CreatePostComment]: {
+        success: "Created post comment successfully.",
+        error: "Failed to create post comment.",
+    },
+    [PostEndpointUrl.CreateChatComment]: {
+        success: "Created chat comment successfully.",
+        error: "Failed to create chat comment.",
+    },
+    [PostEndpointUrl.ClearEmojiStatus]: {
+        success: "Cleared emoji status successfully.",
+        error: "Failed to clear emoji status.",
+    },
+    [PostEndpointUrl.CreateOrUpdatePostReaction]: {
+        success: "Created/updated post reaction.",
+        error: "Failed to add/update emoji reaction.",
+    },
+    [PostEndpointUrl.RemovePostReaction]: {
+        success: "Removed post reaction.",
+        error: "Failed to remove emoji reaction.",
+    },
+
 };
 
 export const usePost = () => {

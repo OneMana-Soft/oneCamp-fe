@@ -7,14 +7,17 @@ import drawerSlice from "@/store/slice/drawerSlice";
 import sheetSlice from "@/store/slice/sheetSlice";
 import popoverSlice from "@/store/slice/popoverSlice";
 import reactionSlice from "@/store/slice/reactionSlice";
-import postSlice from "@/store/slice/postSlice";
 import {taskInfoSlice} from "@/store/slice/taskInfoSlice";
 import {projectAttachmentSlice} from "@/store/slice/projectAttachmentSlice";
-import rightPanelSlice from "@/store/slice/rightPanelSlice";
 import fileUploadSlice from "@/store/slice/fileUploadSlice";
 import channelSlice from "@/store/slice/channelSlice";
 import chatSlice from "@/store/slice/chatSlice";
 import fwdMessageSlice from "@/store/slice/fwdMessageSlice";
+import desktopRightPanelSlice from "@/store/slice/desktopRightPanelSlice";
+import channelCommentSlice from "@/store/slice/channelCommentSlice";
+import {chatCommentSlice} from "@/store/slice/chatCommentSlice";
+import userSlice from "@/store/slice/userSlice";
+import typingSlice from "@/store/slice/typingSlice";
 
 
 const rootPersistConfig = {
@@ -23,7 +26,6 @@ const rootPersistConfig = {
     whitelist: [
         reactionSlice.name,
         // channelSlice.name,
-        postSlice.name,
         taskInfoSlice.name,
         projectAttachmentSlice.name,
         // dmSlice.name,
@@ -32,17 +34,21 @@ const rootPersistConfig = {
 }
 
 const rootReducer = combineReducers({
+    [userSlice.name]: userSlice.reducer,
     [refreshSlice.name]: refreshSlice.reducer,
     [channelSlice.name]: channelSlice.reducer,
     [dialogSlice.name]: dialogSlice.reducer,
     [drawerSlice.name]: drawerSlice.reducer,
     [sheetSlice.name]: sheetSlice.reducer,
     [popoverSlice.name]: popoverSlice.reducer,
+    [channelCommentSlice.name]: channelCommentSlice.reducer,
+    [chatCommentSlice.name]: chatCommentSlice.reducer,
     [reactionSlice.name]: reactionSlice.reducer,
-    [rightPanelSlice.name]: rightPanelSlice.reducer,
     [fileUploadSlice.name]: fileUploadSlice.reducer,
     [chatSlice.name]: chatSlice.reducer,
-    [fwdMessageSlice.name]: fwdMessageSlice.reducer
+    [fwdMessageSlice.name]: fwdMessageSlice.reducer,
+    [desktopRightPanelSlice.name]: desktopRightPanelSlice.reducer,
+    [typingSlice.name]: typingSlice.reducer
 });
 
 const persistedReducer = persistReducer(rootPersistConfig, rootReducer);

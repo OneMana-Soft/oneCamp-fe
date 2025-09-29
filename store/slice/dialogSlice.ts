@@ -22,6 +22,14 @@ interface forwardMessageInterface {
   postUUID: string
 }
 
+interface confirmAlertInterface {
+  title: string
+  description: string
+  onConfirm: () => void
+  confirmText?: string
+
+}
+
 const initialState = {
   createChannelDialog: { isOpen: false },
   createProjectDialog: { isOpen: false },
@@ -32,6 +40,7 @@ const initialState = {
   editChannelDialog: { isOpen: false, data: { channelUUID: "" } },
   editChannelMemberDialog: { isOpen: false, data: { channelUUID: "" } },
   attachmentLightboxDialog: { isOpen: false, data: { allMedia: [] as AttachmentMediaReq[],  mediaGetUrl: "", media: {} as AttachmentMediaReq } },
+  confirmAlertDialog: { isOpen: false, data: {} as confirmAlertInterface },
 
 };
 
@@ -159,6 +168,20 @@ export const dialogSlice = createSlice({
       state.forwardMessageDialog = initialState.forwardMessageDialog;
     },
 
+    openConfirmAlertMessageDialog: (
+        state,
+        action: { payload:  confirmAlertInterface }
+    ) => {
+      state.confirmAlertDialog = {
+        isOpen: true,
+        data: action.payload,
+      };
+    },
+
+    closeConfirmAlertMessageDialog: (state) => {
+      state.confirmAlertDialog = initialState.confirmAlertDialog;
+    },
+
   },
 });
 
@@ -180,7 +203,9 @@ export const {
   openMediaLightboxDialog,
   closeMediaLightboxDialog,
   openForwardMessageDialog,
-  closeForwardMessageDialog
+  closeForwardMessageDialog,
+  openConfirmAlertMessageDialog,
+  closeConfirmAlertMessageDialog
 } = dialogSlice.actions;
 
 export default dialogSlice;

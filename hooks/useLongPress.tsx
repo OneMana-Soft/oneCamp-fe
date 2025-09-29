@@ -1,5 +1,4 @@
 "use client";
-
 import type React from "react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -23,11 +22,16 @@ export function useLongPress(
     const startTimeRef = useRef<number>(0);
     const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const targetRef = useRef<HTMLElement | null>(null);
+    const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+    const hasMovedRef = useRef<boolean>(false);
 
     const start = useCallback(
         (event: React.TouchEvent | React.MouseEvent | TouchEvent) => {
+            // Store initial touch position for touch events
             if (event.type === "touchstart") {
-                event.preventDefault(); // This will work with passive: false
+                const touch = (event as TouchEvent).touches[0];
+                touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+                hasMovedRef.current = false;
             }
 
             onLongPressStart?.();
@@ -36,7 +40,6 @@ export function useLongPress(
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
-
             if (progressIntervalRef.current) {
                 clearInterval(progressIntervalRef.current);
             }
@@ -46,7 +49,6 @@ export function useLongPress(
                     const elapsed = Date.now() - startTimeRef.current;
                     const progress = Math.min(elapsed / threshold, 1);
                     onLongPressProgress(progress);
-
                     if (progress >= 1) {
                         clearInterval(progressIntervalRef.current!);
                     }
@@ -54,50 +56,69 @@ export function useLongPress(
             }
 
             timeoutRef.current = setTimeout(() => {
-                callback();
+                // Only trigger callback if touch hasn't moved significantly
+                if (!hasMovedRef.current) {
+                    callback();
+                }
             }, threshold);
         },
         [callback, threshold, onLongPressStart, onLongPressProgress],
     );
 
+    const move = useCallback((event: TouchEvent) => {
+        if (!touchStartPos.current) return;
+
+        const touch = event.touches[0];
+        const deltaX = Math.abs(touch.clientX - touchStartPos.current.x);
+        const deltaY = Math.abs(touch.clientY - touchStartPos.current.y);
+
+        // If moved more than 10px in any direction, consider it a scroll gesture
+        if (deltaX > 10 || deltaY > 10) {
+            hasMovedRef.current = true;
+            stop(event);
+        }
+    }, []);
+
     const stop = useCallback(
-        (event?: React.TouchEvent | React.MouseEvent | TouchEvent) => { // eslint-disable-line @typescript-eslint/no-unused-vars
+        (event?: React.TouchEvent | React.MouseEvent | TouchEvent) => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
                 timeoutRef.current = null;
             }
-
             if (progressIntervalRef.current) {
                 clearInterval(progressIntervalRef.current);
                 progressIntervalRef.current = null;
             }
 
+            touchStartPos.current = null;
+            hasMovedRef.current = false;
             onLongPressEnd?.();
         },
         [onLongPressEnd],
     );
 
-    // Attach native event listeners with passive: false
+    // Attach native event listeners
     useEffect(() => {
         const element = targetRef.current;
         if (!element) return;
 
         const handleTouchStart = (e: TouchEvent) => start(e);
+        const handleTouchMove = (e: TouchEvent) => move(e);
         const handleTouchEnd = (e: TouchEvent) => stop(e);
 
-        element.addEventListener("touchstart", handleTouchStart, {
-            passive: false,
-        });
-        element.addEventListener("touchend", handleTouchEnd, { passive: false });
+        element.addEventListener("touchstart", handleTouchStart, { passive: true });
+        element.addEventListener("touchmove", handleTouchMove, { passive: true });
+        element.addEventListener("touchend", handleTouchEnd, { passive: true });
 
         return () => {
             element.removeEventListener("touchstart", handleTouchStart);
+            element.removeEventListener("touchmove", handleTouchMove);
             element.removeEventListener("touchend", handleTouchEnd);
         };
-    }, [start, stop]);
+    }, [start, move, stop]);
 
     return {
-        ref: targetRef, // Attach this ref to your target element
+        ref: targetRef,
         onMouseDown: start,
         onMouseUp: stop,
         onMouseLeave: stop,

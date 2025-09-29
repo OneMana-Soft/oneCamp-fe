@@ -13,7 +13,7 @@ export const DrawerActionCard = ({onCardClick, Icon, cardText}: ActionCardPropIn
 
     return (
         <Card
-            className="flex-1 min-w-[100px] max-w-[150px] h-20 p-4 cursor-pointer bg-secondary/80"
+            className="flex-1  h-20 p-4 cursor-pointer bg-secondary/80"
             onClick={onCardClick}
         >
             <CardContent

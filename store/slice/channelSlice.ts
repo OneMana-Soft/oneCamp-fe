@@ -5,6 +5,8 @@ import {UserProfileDataInterface} from "@/types/user";
 import {AttachmentMediaReq, AttachmentType} from "@/types/attachment";
 import {GroupedReaction} from "@/types/reaction";
 import {undefined} from "zod";
+import {CommentInfoInterface} from "@/types/comment";
+import {ChatInfo} from "@/types/chat";
 
 
 export interface FilePreview {
@@ -30,6 +32,25 @@ export interface  ExtendedPosts {
 }
 export interface ExtendedInputState {
     [key: string]:  MessageInputState;
+}
+
+export interface ExtendedScrollToBottom {
+    [key: string]: ScrollToBottom
+}
+
+export interface ScrollToBottom {
+    shouldScrollToBottom: boolean;
+}
+
+interface UpdateScrollToBottom {
+    channelId: string
+    scrollToBottom: boolean
+}
+
+interface UpdateReplyCountInterface {
+    channelId: string
+    messageId: string
+    comment: CommentInfoInterface
 }
 
 interface AddInputText {
@@ -131,12 +152,14 @@ interface CreatePost {
     postCreatedAt: string
     postBy: UserProfileDataInterface
     channelId: string
+    fwdPost?: PostsRes
+    fwdChat?: ChatInfo
     attachments: AttachmentMediaReq[]
 }
 
 
 interface CreatePostLocally {
-    postTempId: string
+    postUUID: string
     postText: string
     postCreatedAt: string
     postBy: UserProfileDataInterface
@@ -179,6 +202,7 @@ const initialState = {
     channelInputState: {} as ExtendedInputState,
     channelPosts: {} as ExtendedPosts,
     channelScrollPosition: {} as ChannelScrollPosition,
+    channelScrollToBottom: {} as ExtendedScrollToBottom,
 }
 
 export const channelSlice = createSlice({
@@ -268,7 +292,7 @@ export const channelSlice = createSlice({
             if (postIndex > -1 && postIndex < state.channelPosts[channelId].length) {
                 state.channelPosts[channelId][postIndex].post_reactions = state.channelPosts[channelId][postIndex].post_reactions?.map((reaction) => {
                     if (reaction.uid == reactionId) {
-                        reaction.emoji_id = emojiId
+                        reaction.reaction_emoji_id = emojiId
                     }
                     return reaction
                 })
@@ -287,7 +311,7 @@ export const channelSlice = createSlice({
 
                     post.post_reactions = post.post_reactions?.map((reaction) => {
                         if (reaction.uid == reactionId) {
-                            reaction.emoji_id = emojiId
+                            reaction.reaction_emoji_id = emojiId
                         }
                         return reaction
                     })
@@ -307,7 +331,7 @@ export const channelSlice = createSlice({
                     state.channelPosts[channelId][postIndex].post_reactions = [] as GroupedReaction[]
                 }
                 state.channelPosts[channelId][postIndex].post_reactions?.push({
-                    emoji_id: emojiId,
+                    reaction_emoji_id: emojiId,
                     uid: reactionId,
                     reaction_added_by: addedBy
                 })
@@ -323,7 +347,7 @@ export const channelSlice = createSlice({
                         post.post_reactions = [] as GroupedReaction[]
                     }
                     post.post_reactions.push({
-                        emoji_id: emojiId,
+                        reaction_emoji_id: emojiId,
                         uid: reactionId,
                         reaction_added_by: addedBy
                     })
@@ -359,29 +383,29 @@ export const channelSlice = createSlice({
             })
         },
 
-        incrementPostCommentCountByPostID: (state, action: {payload: UpdatePostCommentCount}) => {
-            const { postId , channelId} = action.payload;
+        // incrementPostCommentCountByPostID: (state, action: {payload: UpdatePostCommentCount}) => {
+        //     const { postId , channelId} = action.payload;
+        //
+        //     state.channelPosts[channelId].map((post)=> {
+        //         if(post.post_uuid == postId) {
+        //             post.post_comment_count++
+        //         }
+        //         return post
+        //     })
+        //
+        // },
 
-            state.channelPosts[channelId].map((post)=> {
-                if(post.post_uuid == postId) {
-                    post.post_comment_count++
-                }
-                return post
-            })
-
-        },
-
-        decrementPostCommentCountByPostID: (state, action: {payload: UpdatePostCommentCount}) => {
-            const { postId , channelId} = action.payload;
-
-            state.channelPosts[channelId].map((post)=> {
-                if(post.post_uuid == postId) {
-                    post.post_comment_count--
-                }
-                return post
-            })
-
-        },
+        // decrementPostCommentCountByPostID: (state, action: {payload: UpdatePostCommentCount}) => {
+        //     const { postId , channelId} = action.payload;
+        //
+        //     state.channelPosts[channelId].map((post)=> {
+        //         if(post.post_uuid == postId) {
+        //             post.post_comment_count--
+        //         }
+        //         return post
+        //     })
+        //
+        // },
 
         updatePost: (state, action: {payload: UpdatePost}) => {
             const { channelId, postIndex, htmlText } = action.payload;
@@ -417,15 +441,15 @@ export const channelSlice = createSlice({
         },
 
         createPostLocally: (state, action: {payload: CreatePostLocally}) => {
-            const {postTempId, postText, postCreatedAt, channelId, postBy, attachments} = action.payload;
+            const { postText, postCreatedAt, channelId, postBy, attachments, postUUID} = action.payload;
             if(!state.channelPosts[channelId]) {
                 state.channelPosts[channelId] = [] as PostsRes[]
             }
             state.channelPosts[channelId].push({
                 post_by: postBy,
+                post_uuid: postUUID,
                 post_created_at: postCreatedAt,
                 post_text: postText,
-                post_temp_id: postTempId,
                 post_added_locally: true, // not seen by user yet
                 post_attachments: attachments,
                 post_comment_count: 0
@@ -433,7 +457,7 @@ export const channelSlice = createSlice({
         },
 
         createPost: (state, action: {payload: CreatePost}) => {
-            const {postId, postText, postCreatedAt, channelId, postBy, attachments} = action.payload;
+            const {postId, postText, postCreatedAt, channelId, postBy, fwdPost, fwdChat, attachments} = action.payload;
             if(!state.channelPosts[channelId]) {
                 state.channelPosts[channelId] = [] as PostsRes[]
             }
@@ -444,6 +468,8 @@ export const channelSlice = createSlice({
                 post_text: postText,
                 post_added_locally: true, // not seen by user yet
                 post_attachments: attachments,
+                post_fwd_msg_post: fwdPost,
+                post_fwd_msg_chat: fwdChat,
                 post_comment_count: 0,
             })
 
@@ -477,6 +503,50 @@ export const channelSlice = createSlice({
         updateChannelScrollPosition: (state, action: {payload: UpdateChannelScrollPosition}) =>{
             const {channelId, scrollTop} = action.payload;
             state.channelScrollPosition[channelId] = scrollTop
+        },
+
+        updateChannelScrollToBottom: (state, action: {payload: UpdateScrollToBottom}) => {
+
+            const {channelId, scrollToBottom} = action.payload;
+
+            if(!state.channelScrollToBottom[channelId]) {
+                state.channelScrollToBottom[channelId] = {} as ScrollToBottom
+            }
+
+            state.channelScrollToBottom[channelId].shouldScrollToBottom = scrollToBottom
+
+        },
+
+        updateChannelMessageReplyIncrement: (state, action: {payload: UpdateReplyCountInterface}) => {
+
+            const {channelId, messageId, comment} = action.payload;
+
+            state.channelPosts[channelId] = state.channelPosts[channelId].map((post) => {
+
+                if(post.post_uuid === messageId) {
+                    post.post_comments = post.post_comments || [];
+                    post.post_comments.push(comment);
+                    post.post_comment_count++
+                }
+
+                return post
+            })
+        },
+
+        updateChannelMessageReplyDecrement: (state, action: {payload: UpdateReplyCountInterface}) => {
+
+            const {channelId, messageId, comment} = action.payload;
+
+            state.channelPosts[channelId] = state.channelPosts[channelId].map((post) => {
+
+                if(post.post_uuid === messageId) {
+                    post.post_comments = post.post_comments || [];
+                    post.post_comments = post.post_comments.filter((c) => c.comment_uuid != comment.comment_uuid)
+                    post.post_comment_count--
+                }
+
+                return post
+            })
         }
     }
 });
@@ -497,8 +567,6 @@ export const {
     createPostReactionPostId,
     removePostReaction,
     removePostReactionByPostId,
-    incrementPostCommentCountByPostID,
-    decrementPostCommentCountByPostID,
     updatePost,
     updatePostByPostId,
     removePost,
@@ -507,7 +575,10 @@ export const {
     createPostLocally,
     addUUIDToLocallyCreatedPost,
     updatePostAddedLocallyToSeen,
-    updateChannelScrollPosition
+    updateChannelScrollPosition,
+    updateChannelScrollToBottom,
+    updateChannelMessageReplyIncrement,
+    updateChannelMessageReplyDecrement
 
 } = channelSlice.actions
 

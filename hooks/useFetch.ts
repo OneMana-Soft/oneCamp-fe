@@ -19,3 +19,34 @@ export const useFetch = <T>(url: string) => {
         mutate
     };
 };
+
+
+export const useFetchOnlyOnce = <T>(url: string) => {
+    const { data, error, isLoading, isValidating, mutate } = useSWR<T>(url == '' ? null : url, fetcher, {
+        revalidateOnFocus: false, // Disable refetch on window focus
+        revalidateOnReconnect: false, // Disable refetch on reconnect
+        revalidateIfStale: false
+    });
+
+    return {
+        data,
+        isLoading: isLoading || isValidating,
+        isError: error,
+        mutate
+    };
+};
+
+export const useMediaFetch = <T>(url: string) => {
+    const { data, error, isLoading, isValidating, mutate } = useSWR<T>(url == '' ? null : url, fetcher, {
+        refreshInterval: 5*60*1000,
+        revalidateOnFocus: false,
+        revalidateIfStale: false
+    });
+
+    return {
+        data,
+        isLoading: isLoading || isValidating,
+        isError: error,
+        mutate
+    };
+};

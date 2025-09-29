@@ -50,6 +50,7 @@ interface SectionFiveProps extends VariantProps<typeof toggleVariants> {
   editor: Editor
   activeActions?: InsertElementAction[]
   mainActionCount?: number
+  toggleToolbar?: boolean
 }
 
 export const SectionFive: React.FC<SectionFiveProps> = ({
@@ -57,12 +58,13 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
   activeActions = formatActions.map(action => action.value),
   mainActionCount = 0,
   size,
+  toggleToolbar=false,
   variant
 }) => {
   return (
     <>
-      <LinkEditPopover editor={editor} size={size} variant={variant} />
-      <ImageEditDialog editor={editor} size={size} variant={variant} />
+      {/*<LinkEditPopover editor={editor} size={size} variant={variant} />*/}
+      {/*<ImageEditDialog editor={editor} size={size} variant={variant} />*/}
       <ToolbarSection
         editor={editor}
         actions={formatActions}
@@ -78,7 +80,10 @@ export const SectionFive: React.FC<SectionFiveProps> = ({
         size={size}
         variant={variant}
       />
+      {
+          !toggleToolbar &&
       <EmojiReactionPicker editor={editor} size={size} variant={variant} />
+      }
     </>
   )
 }

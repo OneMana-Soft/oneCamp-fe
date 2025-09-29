@@ -14,12 +14,7 @@ import {
     addTaskInfoUploadedFiles, deleteTaskInfoPreviewFiles,
     updateTaskInfoPreviewFiles
 } from "@/store/slice/taskInfoSlice";
-import {
-    addPostPreviewFiles,
-    addPostUploadedFiles,
-    deletePostPreviewFiles,
-    updatePostPreviewFiles
-} from "@/store/slice/postSlice";
+
 import {
     addTaskCommentPreviewFiles,
     addTaskCommentUploadedFiles, deleteTaskCommentPreviewFiles,
@@ -28,8 +23,8 @@ import {
 import {
     addChatCommentPreviewFiles,
     addChatCommentUploadedFiles, deleteChatCommentPreviewFiles,
-    updateChatCommentPreviewFiles
-} from "@/store/slice/createChatCommentSlice";
+    updateChatCommentPreviewFiles, updateChatCommentPreviewFilesUUID
+} from "@/store/slice/chatCommentSlice";
 import {
     addChannelPreviewFiles, addChannelUploadedFiles,
     deleteChannelPreviewFiles,
@@ -47,6 +42,12 @@ import {
     updateFwdMsgPreviewFiles,
     updateFwdMsgPreviewFilesUUID
 } from "@/store/slice/fwdMessageSlice";
+import {
+    addChannelCommentMsgPreviewFiles,
+    addChannelCommentMsgUploadedFiles, deleteChannelCommentMsgPreviewFiles,
+    updateChannelCommentMsgPreviewFiles, updateChannelCommentMsgPreviewFilesUUID
+} from "@/store/slice/channelCommentSlice";
+import {getMediaDimensions} from "@/lib/utils/getMediaDimensions";
 
 
 interface UploadJson {
@@ -89,13 +90,13 @@ const uploadFileToChannel = (file: File, channelUUID: string, config: AxiosReque
     return axiosInstance.post(PostFileUploadURL.UploadFile, formData, config).then((res) => res);
 }
 
-const uploadFileToChat = (file: File, chatUUID: string, config: AxiosRequestConfig ={}) => {
+const uploadFileToChat = (file: File, grpId: string, config: AxiosRequestConfig ={}) => {
     const formData = new FormData();
     formData.append('file', file);
 
     const jd:UploadJson = {
         src_key: "chat",
-        src_value: chatUUID
+        src_value: grpId
     }
 
     const jsonData = JSON.stringify(jd);
@@ -231,6 +232,9 @@ export const useUploadFile = () => {
             const cancelToken = axios.CancelToken.source();
             const uniqueNum = Date.now() + i; // Added i to prevent duplicate keys
 
+            const mediaInfo = await getMediaDimensions(file);
+
+
             dispatch(
                 addTaskInfoPreviewFiles({
                     fileUploaded: {
@@ -312,100 +316,6 @@ export const useUploadFile = () => {
 
         return
     }
-
-
-    const makeRequestToUploadToPost = async (files: File[], postId: string, channelId: string) => {
-
-        const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
-
-
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const cancelToken = axios.CancelToken.source();
-            const uniqueNum = Date.now() + i; // Added i to prevent duplicate keys
-
-            dispatch(
-                addPostPreviewFiles({
-                    filesUploaded: {
-                        key: uniqueNum,
-                        fileName: file.name,
-                        progress: 0,
-                        cancelSource: cancelToken,
-                    },
-                    postId,
-                })
-            );
-
-            setIsSubmitting(true)
-
-            const config: AxiosRequestConfig = {
-                cancelToken: cancelToken.token,
-                onUploadProgress: (progressEvent) => {
-                    const progress = Math.round(
-                        (progressEvent.loaded / (progressEvent.total || 100)) * 100
-                    );
-
-                    dispatch(
-                        updatePostPreviewFiles({
-                            progress: progress,
-                            key: uniqueNum,
-                            postId,
-                        })
-                    );
-                },
-            };
-
-            const uploadPromise = uploadFileToChannel(
-                file,
-                channelId,
-                config
-            )
-                .then((res) => {
-                    const uploadMediaRes: UploadFileInterfaceRes = res.data;
-
-                    dispatch(
-                        addPostUploadedFiles({
-                            filesUploaded: {
-                                fileName: file.name,
-                                key: uniqueNum,
-                                url: uploadMediaRes.object_uuid,
-                            },
-                            postId,
-                        })
-                    );
-                    return res;
-                })
-                .catch((error) => {
-                    dispatch(
-                        deletePostPreviewFiles({
-                            key: uniqueNum,
-                            postId,
-                        })
-                    );
-
-                    toast({
-                        title: "Error",
-                        description: `error while uploading file: ${file.name}`,
-                        variant: 'destructive'
-                    });
-                    throw error; // Re-throw to be caught by Promise.allSettled
-                });
-
-            uploadPromises.push(uploadPromise);
-        }
-
-        // Wait for all uploads to complete (success or failure)
-        try {
-            await Promise.allSettled(uploadPromises);
-        } catch (error) {
-            console.error("Error in upload batch:", error);
-        }finally {
-            setIsSubmitting(false)
-        }
-
-        return
-    }
-
 
     const makeRequestToUploadToTaskComment = async (files: File[], projectId: string, taskId: string) => {
 
@@ -499,8 +409,7 @@ export const useUploadFile = () => {
         return
     }
 
-
-    const makeRequestToUploadToChatComment = async (files: File[], chatId: string) => {
+    const makeRequestToUploadToChannelComment = async (files: FileList, channelId: string) => {
 
         const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
 
@@ -508,7 +417,125 @@ export const useUploadFile = () => {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const cancelToken = axios.CancelToken.source();
-            const uniqueNum = Date.now() + i; // Added i to prevent duplicate keys
+            const uniqueNum = (Date.now() + i).toString(); // Added i to prevent duplicate keys
+            const mediaInfo = await getMediaDimensions(file);
+
+
+            const currentDate = new Date().toISOString();
+            const attachmentType = getAttachmentType(file.name)
+
+            dispatch(
+                addChannelCommentMsgPreviewFiles({
+                    filesUploaded: {
+                        key: uniqueNum,
+                        fileName: file.name,
+                        progress: 0,
+                        cancelSource: cancelToken,
+                        attachmentType: attachmentType
+                    },
+                    channelId: channelId
+                })
+            );
+
+            setIsSubmitting(true)
+
+            const config: AxiosRequestConfig = {
+                cancelToken: cancelToken.token,
+                onUploadProgress: (progressEvent) => {
+                    const progress = Math.round(
+                        (progressEvent.loaded / (progressEvent.total || 100)) * 100
+                    );
+
+                    dispatch(
+                        updateChannelCommentMsgPreviewFiles({
+                            progress: progress,
+                            key: uniqueNum,
+                            channelId: channelId
+                        })
+                    );
+                },
+            };
+
+            const uploadPromise = uploadFileToChannel(
+                file,
+                channelId,
+                config
+            )
+                .then((res) => {
+                    const uploadMediaRes: UploadFileInterfaceRes = res.data;
+
+                    dispatch(updateChannelCommentMsgPreviewFilesUUID({
+                        channelId,
+                        key: uniqueNum,
+                        uuid: uploadMediaRes.object_uuid,
+                    }))
+
+                    dispatch(
+                        addChannelCommentMsgUploadedFiles({
+                            filesUploaded: {
+                                attachment_file_name: file.name,
+                                attachment_obj_key: uniqueNum,
+                                attachment_uuid: uploadMediaRes.object_uuid,
+                                attachment_size: file.size,
+                                attachment_created_at: currentDate,
+                                attachment_type: attachmentType,
+                                attachment_duration: mediaInfo.duration,
+                                attachment_height: mediaInfo.height,
+                                attachment_width: mediaInfo.width,
+                                attachment_raw_type: file.type
+                            },
+                            channelId: channelId,
+                        })
+                    );
+                    return res;
+                })
+                .catch((error) => {
+                    dispatch(
+                        deleteChannelCommentMsgPreviewFiles({
+                            key: uniqueNum,
+                            channelId,
+                        })
+                    );
+
+                    toast({
+                        title: "Error",
+                        description: `error while uploading file: ${file.name}`,
+                        variant: 'destructive'
+                    });
+                    throw error; // Re-throw to be caught by Promise.allSettled
+                });
+
+            uploadPromises.push(uploadPromise);
+        }
+
+        // Wait for all uploads to complete (success or failure)
+        try {
+            await Promise.allSettled(uploadPromises);
+        } catch (error) {
+            console.error("Error in upload batch:", error);
+        }finally {
+            setIsSubmitting(false)
+        }
+
+        return
+    }
+
+
+
+    const makeRequestToUploadToChatComment = async (files: FileList, chatMessageUUID: string, grpId: string) => {
+
+        const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
+
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const cancelToken = axios.CancelToken.source();
+            const uniqueNum = (Date.now() + i).toString(); // Added i to prevent duplicate keys
+            const mediaInfo = await getMediaDimensions(file);
+
+
+            const currentDate = new Date().toISOString();
+            const attachmentType = getAttachmentType(file.name)
 
             dispatch(
                 addChatCommentPreviewFiles({
@@ -517,8 +544,9 @@ export const useUploadFile = () => {
                         fileName: file.name,
                         progress: 0,
                         cancelSource: cancelToken,
+                        attachmentType: attachmentType
                     },
-                    chatUUID: chatId
+                    chatUUID: chatMessageUUID
                 })
             );
 
@@ -535,7 +563,7 @@ export const useUploadFile = () => {
                         updateChatCommentPreviewFiles({
                             progress: progress,
                             key: uniqueNum,
-                            chatUUID: chatId
+                            chatUUID: chatMessageUUID
                         })
                     );
                 },
@@ -543,20 +571,33 @@ export const useUploadFile = () => {
 
             const uploadPromise = uploadFileToChat(
                 file,
-                chatId,
+                grpId,
                 config
             )
                 .then((res) => {
                     const uploadMediaRes: UploadFileInterfaceRes = res.data;
 
+                    dispatch(updateChatCommentPreviewFilesUUID({
+                        chatUUID: chatMessageUUID,
+                        key: uniqueNum,
+                        uuid: uploadMediaRes.object_uuid,
+                    }))
+
                     dispatch(
                         addChatCommentUploadedFiles({
                             filesUploaded: {
-                                fileName: file.name,
-                                key: uniqueNum,
-                                url: uploadMediaRes.object_uuid,
+                                attachment_file_name: file.name,
+                                attachment_obj_key: uniqueNum,
+                                attachment_uuid: uploadMediaRes.object_uuid,
+                                attachment_size: file.size,
+                                attachment_created_at: currentDate,
+                                attachment_type: attachmentType,
+                                attachment_duration: mediaInfo.duration,
+                                attachment_height: mediaInfo.height,
+                                attachment_width: mediaInfo.width,
+                                attachment_raw_type: file.type
                             },
-                            chatUUID: chatId,
+                            chatUUID: chatMessageUUID,
                         })
                     );
                     return res;
@@ -565,7 +606,7 @@ export const useUploadFile = () => {
                     dispatch(
                         deleteChatCommentPreviewFiles({
                             key: uniqueNum,
-                            chatUUID: chatId,
+                            chatUUID: chatMessageUUID,
                         })
                     );
 
@@ -596,14 +637,17 @@ export const useUploadFile = () => {
 
         const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
 
-
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const cancelToken = axios.CancelToken.source();
             const uniqueNum = (Date.now() + i).toString() // Added i to prevent duplicate keys
 
-            const currentDate = Date.now().toString()
+            const currentDate = new Date().toISOString();
             const attachmentType = getAttachmentType(file.name)
+
+
+            const mediaInfo = await getMediaDimensions(file);
+
 
             dispatch(
                 addChannelPreviewFiles({
@@ -619,6 +663,8 @@ export const useUploadFile = () => {
             );
 
             setIsSubmitting(true)
+
+
 
             const config: AxiosRequestConfig = {
                 cancelToken: cancelToken.token,
@@ -645,6 +691,7 @@ export const useUploadFile = () => {
                 .then((res) => {
                     const uploadMediaRes: UploadFileInterfaceRes = res.data;
 
+
                     dispatch(updateChannelPreviewFilesUUID({
                         channelId,
                         key: uniqueNum,
@@ -659,7 +706,11 @@ export const useUploadFile = () => {
                                 attachment_uuid: uploadMediaRes.object_uuid,
                                 attachment_size: file.size,
                                 attachment_created_at: currentDate,
-                                attachment_type: attachmentType
+                                attachment_type: attachmentType,
+                                attachment_duration: mediaInfo.duration,
+                                attachment_height: mediaInfo.height,
+                                attachment_width: mediaInfo.width,
+                                attachment_raw_type: file.type
                             },
                             channelId,
                         })
@@ -701,13 +752,14 @@ export const useUploadFile = () => {
 
         const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
 
-        console.log("asdkasdh UPLOADING!!!!!!!!!")
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const cancelToken = axios.CancelToken.source();
             const uniqueNum = (Date.now() + i).toString() // Added i to prevent duplicate keys
+            const mediaInfo = await getMediaDimensions(file);
 
-            const currentDate = Date.now().toString()
+
+            const currentDate = new Date().toISOString();
             const attachmentType = getAttachmentType(file.name)
 
             dispatch(
@@ -762,7 +814,10 @@ export const useUploadFile = () => {
                                 attachment_uuid: uploadMediaRes.object_uuid,
                                 attachment_size: file.size,
                                 attachment_created_at: currentDate,
-                                attachment_type: attachmentType
+                                attachment_type: attachmentType,
+                                attachment_duration: mediaInfo.duration,
+                                attachment_height: mediaInfo.height,
+                                attachment_width: mediaInfo.width
                             },
                         })
                     );
@@ -799,7 +854,7 @@ export const useUploadFile = () => {
     }
 
 
-    const makeRequestToUploadToChat = async (files: FileList, chatUUID: string) => {
+    const makeRequestToUploadToChat = async (files: FileList, chatUUID: string, grpId: string) => {
 
         const uploadPromises: Promise<AxiosResponse<UploadFileInterfaceRes>>[] = [];
 
@@ -809,7 +864,9 @@ export const useUploadFile = () => {
             const cancelToken = axios.CancelToken.source();
             const uniqueNum = (Date.now() + i).toString() // Added i to prevent duplicate keys
 
-            const currentDate = Date.now().toString()
+            const mediaInfo = await getMediaDimensions(file);
+
+            const currentDate = new Date().toISOString();
             const attachmentType = getAttachmentType(file.name)
 
             dispatch(
@@ -846,7 +903,7 @@ export const useUploadFile = () => {
 
             const uploadPromise = uploadFileToChat(
                 file,
-                chatUUID,
+                grpId,
                 config
             )
                 .then((res) => {
@@ -866,7 +923,11 @@ export const useUploadFile = () => {
                                 attachment_uuid: uploadMediaRes.object_uuid,
                                 attachment_size: file.size,
                                 attachment_created_at: currentDate,
-                                attachment_type: attachmentType
+                                attachment_type: attachmentType,
+                                attachment_width: mediaInfo.width,
+                                attachment_height: mediaInfo.height,
+                                attachment_duration: mediaInfo.duration,
+                                attachment_raw_type: file.type
                             },
                             chatUUID,
                         })
@@ -906,5 +967,5 @@ export const useUploadFile = () => {
 
 
 
-    return {makeRequestToUploadToChannel, makeRequestToUploadToProject, makeRequestToUploadToTask,  makeRequestToUploadToPost, makeRequestToUploadToTaskComment, makeRequestToUploadToChatComment, makeRequestToUploadToChat, makeRequestToUploadToChatAndChannels, isSubmitting}
+    return {makeRequestToUploadToChannel, makeRequestToUploadToChannelComment, makeRequestToUploadToProject, makeRequestToUploadToTask, makeRequestToUploadToTaskComment, makeRequestToUploadToChatComment, makeRequestToUploadToChat, makeRequestToUploadToChatAndChannels, isSubmitting}
 }

@@ -21,7 +21,6 @@ export default function TouchableDiv({
     const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([])
     const divRef = useRef<HTMLDivElement>(null)
     const rippleIdRef = useRef(0)
-
     // Clean up completed ripples
     useEffect(() => {
         if (ripples.length > 0) {
@@ -34,22 +33,17 @@ export default function TouchableDiv({
         }
     }, [ripples, rippleDuration, onTouch])
 
-    const handleTouch = (event: React.MouseEvent | React.TouchEvent) => {
+    const handleTouch = (event: React.TouchEvent) => {
         if (!divRef.current) return
+
+        if ((event.target as HTMLElement).closest("[data-no-ripple]")) {
+            return
+        }
 
         // Get the position relative to the div
         const rect = divRef.current.getBoundingClientRect()
-        let x: number, y: number
-
-        if ("touches" in event) {
-            // Touch event
-            x = event.touches[0].clientX - rect.left
-            y = event.touches[0].clientY - rect.top
-        } else {
-            // Mouse event
-            x = event.clientX - rect.left
-            y = event.clientY - rect.top
-        }
+        const x = event.touches[0].clientX - rect.left
+        const y = event.touches[0].clientY - rect.top
 
         // Add new ripple
         const newRipple = {
@@ -65,7 +59,6 @@ export default function TouchableDiv({
         <div
             ref={divRef}
             className={`relative overflow-hidden cursor-pointer ${className}`}
-            onClick={handleTouch}
             onTouchStart={handleTouch}
         >
             {children}
@@ -91,19 +84,19 @@ export default function TouchableDiv({
 
             {/* Ripple animation */}
             <style jsx>{`
-        @keyframes ripple {
-          0% {
-            opacity: 0.7;
-            width: 0;
-            height: 0;
-          }
-          100% {
-            opacity: 0;
-            width: ${divRef.current ? Math.max(divRef.current.clientWidth, divRef.current.clientHeight) * 2.5 : 1000}px;
-            height: ${divRef.current ? Math.max(divRef.current.clientWidth, divRef.current.clientHeight) * 2.5 : 1000}px;
-          }
-        }
-      `}</style>
+                @keyframes ripple {
+                    0% {
+                        opacity: 0.7;
+                        width: 0;
+                        height: 0;
+                    }
+                    100% {
+                        opacity: 0;
+                        width: ${divRef.current ? Math.max(divRef.current.clientWidth, divRef.current.clientHeight) * 2.5 : 1000}px;
+                        height: ${divRef.current ? Math.max(divRef.current.clientWidth, divRef.current.clientHeight) * 2.5 : 1000}px;
+                    }
+                }
+            `}</style>
         </div>
     )
 }
