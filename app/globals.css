@@ -91,6 +91,14 @@
     counter-increment: step;
   }
 
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .step:before {
     @apply absolute w-9 h-9 bg-muted rounded-full font-mono font-medium text-center text-base inline-flex items-center justify-center -indent-px border-4 border-background;
     @apply ml-[-50px] mt-[-4px];
@@ -237,6 +245,72 @@
   animation: gradientMove 0.5s ease-out forwards;
 }
 
+@keyframes waveCompletion {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0.6;
+  }
+}
+
+.animate-gradient-completion {
+  position: relative;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.animate-gradient-completion::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    rgba(34, 197, 94, 0.1) 0%, 
+    rgba(34, 197, 94, 0.3) 25%, 
+    rgba(34, 197, 94, 0.5) 50%, 
+    rgba(34, 197, 94, 0.3) 75%, 
+    rgba(34, 197, 94, 0.1) 100%
+  );
+  transform: translate3d(-100%, 0, 0);
+  animation: waveCompletion 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  z-index: 1;
+  will-change: transform, opacity;
+}
+
+.animate-gradient-completion > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-completion::before {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-out;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .animate-gradient-completion::before {
+    background: linear-gradient(90deg, 
+      rgba(34, 197, 94, 0.2) 0%, 
+      rgba(34, 197, 94, 0.5) 25%, 
+      rgba(34, 197, 94, 0.7) 50%, 
+      rgba(34, 197, 94, 0.5) 75%, 
+      rgba(34, 197, 94, 0.2) 100%
+    );
+  }
+}
+
 .top-shadow {
   box-shadow: 0 -2px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -267,5 +341,4 @@
   touch-action: pan-y;
   overscroll-behavior: contain;
 }
-
 

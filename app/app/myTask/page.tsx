@@ -7,9 +7,9 @@ import {app_channel_path} from "@/types/paths";
 import {MobileHome} from "@/components/home/mobile/mobileHome";
 import {LoaderCircle} from "lucide-react";
 import {MobileMyTask} from "@/components/myTask/mobileMyTask";
+import {MyTaskDesktop} from "@/components/myTask/myTaskDesktop";
 
 export default function Task() {
-    const router = useRouter();
     const { isDesktop, isMobile } = useMedia();
 
     // useEffect(() => {
@@ -18,14 +18,12 @@ export default function Task() {
     //     }
     // }, [isDesktop, router]);
 
-    if(isMobile) {
-        return <MobileMyTask/>
-    }
 
 
     return (
-        <div className='h-full w-full flex items-center justify-center'>
-            <LoaderCircle className="mr-2 h-4 w-4 animate-spin"/>
-        </div>
+        <>
+            {isMobile && <MobileMyTask/>}
+            {isDesktop && <MyTaskDesktop/>}
+        </>
     );
 }
