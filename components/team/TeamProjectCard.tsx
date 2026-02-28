@@ -1,0 +1,28 @@
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {useFetch} from "@/hooks/useFetch";
+import {TeamInfoInterface} from "@/types/team";
+import {GetEndpointUrl} from "@/services/endPoints";
+import {TeamProjectList} from "@/components/team/TeamProjectList";
+import {ClipboardList, List} from "lucide-react";
+
+export const TeamProjectCard = ({teamId}:{teamId: string}) => {
+
+
+    return (
+        <Card className="w-full h-full border-none shadow-none bg-transparent flex flex-col">
+            <CardHeader className="px-0 pt-0 pb-6">
+                <div className="flex items-center gap-2 mb-1">
+                    <div className="bg-primary/10 p-1.5 rounded-md">
+                        <ClipboardList className="h-4 w-4 text-primary" />
+                    </div>
+                    <CardTitle className="text-xl font-bold tracking-tight">
+                        Projects
+                    </CardTitle>
+                </div>
+            </CardHeader>
+            <CardContent className="px-0 flex-1 overflow-hidden">
+                <TeamProjectList teamId={teamId} />
+            </CardContent>
+        </Card>
+    )
+}

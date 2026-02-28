@@ -1,0 +1,129 @@
+"use client"
+
+import type React from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { Textarea } from "@/components/ui/textarea"
+import { useThrottle } from "@/components/minimal-tiptap/hooks/use-throttle"
+import { cn } from "@/lib/utils/helpers/cn"
+
+interface ResizableTextInputProps {
+    delay?: number
+    content: string
+    className?: string
+    placeholder?: string
+    textUpdate: (content: string) =>  void
+    textUpdateOnEnter?: (content: string) => Promise<void> | void
+    disabled?: boolean
+}
+
+export default function ResizeableTextInput({
+                                                delay = 250,
+                                                content,
+                                                textUpdate,
+                                                className,
+                                                disabled = false,
+                                                placeholder,
+                                                textUpdateOnEnter,
+                                            }: ResizableTextInputProps) {
+    const [localText, setLocalText] = useState(content)
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Throttled text update function (preserve exact user input; avoid trimming)
+    const throttledSetText = useThrottle(
+        useCallback(
+            (value: string) => {
+                if (value !== content) {
+                    textUpdate(value)
+                }
+            },
+            [textUpdate, content],
+        ),
+        delay,
+    )
+
+    // Optimized height adjustment function
+    const adjustTextareaHeight = useCallback(() => {
+        const textarea = textareaRef.current
+        if (!textarea) return
+        // Use rAF to prevent layout thrashing
+        requestAnimationFrame(() => {
+            textarea.style.height = "auto"
+            textarea.style.height = `${textarea.scrollHeight}px`
+        })
+    }, [])
+
+    // Ref callback for initial setup
+    const textareaRefCallback = useCallback((node: HTMLTextAreaElement | null) => {
+        if (!node) return
+        textareaRef.current = node
+        // Delay initial height calculation to ensure panel is fully rendered
+        setTimeout(() => {
+            node.style.height = "auto"
+            node.style.height = `${node.scrollHeight}px`
+        }, 0)
+    }, [])
+
+    useEffect(() => {
+        setLocalText(content)
+    }, [content])
+
+    // Adjust height when text changes
+    useEffect(() => {
+        adjustTextareaHeight()
+    }, [localText, adjustTextareaHeight])
+
+    // Additional effect to handle panel animation/rendering delays
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            adjustTextareaHeight()
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [content, adjustTextareaHeight])
+
+    // Handle text input changes
+    const handleTextChange = useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            const newValue = e.target.value
+            setLocalText(newValue)
+            throttledSetText(newValue)
+        },
+        [throttledSetText],
+    )
+
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+            if (e.key === "Enter" && !e.shiftKey && textUpdateOnEnter) {
+                e.preventDefault()
+                textUpdateOnEnter(localText.trim())
+            }
+        },
+        [textUpdateOnEnter, localText],
+    )
+
+    const classes = cn("border-0 shadow-none overflow-hidden resize-none !py-0 !min-h-[1.5rem] !px-0", className)
+
+    // Prefer placeholder as accessible name; fall back to a generic label if empty
+    const ariaLabel = placeholder ? undefined : "Editable text input"
+
+    return (
+        <Textarea
+            ref={textareaRefCallback}
+            value={localText}
+            onChange={handleTextChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            aria-label={ariaLabel}
+            rows={1}
+            className={classes}
+            spellCheck={false}
+            style={{
+                minHeight: "1.5rem",
+                paddingTop: "0",
+                paddingBottom: "0",
+                paddingLeft: "0",
+                paddingRight: "0",
+            }}
+            disabled={disabled}
+        />
+    )
+}

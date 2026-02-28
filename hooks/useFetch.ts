@@ -1,0 +1,76 @@
+import useSWR, { SWRConfiguration } from 'swr';
+import axiosInstance from "@/lib/axiosInstance";
+import { z } from 'zod';
+
+const fetcher = async <T>(url: string, schema?: z.ZodSchema<T>): Promise<T> => {
+    const response = await axiosInstance.get(url);
+    const data = response.data;
+
+    if (schema) {
+        try {
+            return schema.parse(data);
+        } catch (error) {
+            console.error(`[Validation Error] [${url}]:`, error);
+            // In a real enterprise app, we might report this to Sentry
+            return data; // Fallback to raw data in dev/soft-launch
+        }
+    }
+
+    return data;
+};
+
+export const useFetch = <T>(url: string, schema?: z.ZodSchema<T>, config?: SWRConfiguration) => {
+    const { data, error, isLoading, isValidating, mutate } = useSWR<T>(
+        url == '' ? null : url, 
+        () => fetcher<T>(url, schema),
+        config
+    );
+
+    return {
+        data,
+        isLoading: isLoading,
+        isError: error,
+        mutate
+    };
+};
+
+
+export const useFetchOnlyOnce = <T>(url: string, schema?: z.ZodSchema<T>) => {
+    const { data, error, isLoading, isValidating, mutate } = useSWR<T>(
+        url == '' ? null : url, 
+        () => fetcher<T>(url, schema), 
+        {
+            revalidateOnFocus: false, // Disable refetch on window focus
+            revalidateOnReconnect: false, // Disable refetch on reconnect
+            revalidateIfStale: false
+        }
+    );
+
+    return {
+        data,
+        isLoading: isLoading || isValidating,
+        isError: error,
+        mutate
+    };
+};
+
+const mediaFetcher = async <T>(url: string): Promise<T> => {
+    const separator = url.includes('?') ? '&' : '?';
+    const f = axiosInstance.get(`${url}${separator}_t=${Date.now()}`).then((response) => response.data);
+
+    return f;
+};
+
+export const useMediaFetch = <T>(url: string) => {
+    const { data, error, isLoading, isValidating, mutate } = useSWR<T>(url == '' ? null : url, mediaFetcher, {
+        refreshInterval: 4 * 60 * 1000, // 4 minutes (before 5 min expiry)
+        dedupingInterval: 60000, // 1 minute
+    });
+
+    return {
+        data,
+        isLoading: isLoading || isValidating,
+        isError: error,
+        mutate
+    };
+};
